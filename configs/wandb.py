@@ -1,3 +1,5 @@
+from configs.globals import *
+
 WANDB_PROJECT = 'AICROWD-SUADD'
 ENTITY = None # set this to team name if working in a team
 CLASSES = {i:c for i,c in enumerate([
@@ -8,3 +10,9 @@ CLASSES = {i:c for i,c in enumerate([
 CLASSES.update({255: 'unknown'})
 RAW_DATA = 'suadd'
 RAW_DATA_TEST = 'suadd-test'
+
+global DATA_NAME
+if debug:
+    DATA_NAME = RAW_DATA_TEST
+else:
+    DATA_NAME = RAW_DATA
