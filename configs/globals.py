@@ -1,0 +1,3 @@
+global debug
+
+debug = True
