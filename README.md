@@ -19,6 +19,9 @@ conda env create -f environment.yml
 - [ ] Shifts
 - [ ] Flips
 - [ ] Rescaling
+- [ ] Random elastic deformation
+- [ ] Random noise
+- [ ] Random blur
 
 ## Models:
 
@@ -30,7 +33,7 @@ conda env create -f environment.yml
 # TODOs
 
 - [x] Split Data (make sure it is balanced)
-- [ ] data augmentation
+- [ ] Data augmentation
 - [ ] Prepare PyTorch Lightning model (use debug mode)
 - [ ] Prepare WandB logging (use debug mode)
 - [ ] Do not forget to keep track of commit hashes for reproducibility
