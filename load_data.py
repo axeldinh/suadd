@@ -12,33 +12,33 @@ from tqdm import tqdm, trange
 import matplotlib.pyplot as plt
 import wandb
 import configs.wandb as wandb_config
+from configs.globals import *
 
 
 class ImageDataset(Dataset):
 
-    def __init__(self, folder, transform=None, subset=False):
+    def __init__(self, folder, transform=None, size=None):
         self.images_folder = os.path.join(folder, 'inputs')
         self.semantic_annotations_folder = os.path.join(folder, 'semantic_annotations')
         self.depth_annotations_folder = os.path.join(folder, 'depth_annotations')
         self.images_paths = os.listdir(self.images_folder)
         self.semantic_annotations_paths = os.listdir(self.semantic_annotations_folder)
         self.depth_annotations_paths = os.listdir(self.depth_annotations_folder)
-        if subset:
-            self.images_paths = self.images_paths[:10]
-            self.semantic_annotations_paths = self.semantic_annotations_paths[:1]
-            self.depth_annotations_paths = self.depth_annotations_paths[:1]
+        if size is not None:
+            self.images_paths = self.images_paths[:size]
         self.transform = transform
 
     def __len__(self):
         return len(self.images_paths)
 
     def __getitem__(self, idx):
-        image_path = os.path.join(self.images_folder, self.images_paths[idx])
-        semantic_annotation_path = os.path.join(self.semantic_annotations_folder, self.semantic_annotations_paths[idx])
-        depth_annotation_path = os.path.join(self.depth_annotations_folder, self.depth_annotations_paths[idx])
+        img_name = self.images_paths[idx]
+        image_path = os.path.join(self.images_folder, img_name)
+        semantic_annotation_path = os.path.join(self.semantic_annotations_folder, img_name)
+        depth_annotation_path = os.path.join(self.depth_annotations_folder, img_name)
 
-        image = read_image(image_path)[0].float()
-        semantic_annotation = read_image(semantic_annotation_path)[0].float()
+        image = read_image(image_path).float()
+        semantic_annotation = read_image(semantic_annotation_path).float()
         depth_annotation = imread(depth_annotation_path).astype(np.float32)
         depth_annotation = torch.from_numpy(depth_annotation)
 
@@ -59,6 +59,18 @@ def create_table(dataset):
         class_id_in_img = torch.unique(sem)
         class_in_img = [wandb_config.CLASSES[c.item()] for c in class_id_in_img]
 
+        # Check that the classes are well represented
+
+        #print(wandb_config.CLASSES)
+        #print([int(c in class_in_img) for c in wandb_config.CLASSES.values()])
+        #for cls in wandb_config.CLASSES:
+        #    sem_temp = sem.clone()
+        #    sem_temp[sem!=cls] = 0
+        #    overlay = make_overlay(img.type(torch.uint8), sem_temp)
+        #    imshow(overlay.numpy().transpose(1, 2, 0))
+        #    plt.title(wandb_config.CLASSES[cls])
+        #    plt.show()
+
         table.add_data(
             img_name,
             img_name.split("-")[0],
@@ -67,7 +79,7 @@ def create_table(dataset):
                 img.float(),
                 masks={
                     "predictions": {
-                        "mask_data": sem.numpy(),
+                        "mask_data": sem.numpy()[0],
                         "class_labels": wandb_config.CLASSES,
                     }
                 }
@@ -76,7 +88,7 @@ def create_table(dataset):
                 dep,
                 masks={
                     "predictions": {
-                        "mask_data": sem.numpy(),
+                        "mask_data": sem.numpy()[0],
                         "class_labels": wandb_config.CLASSES,
                     }
                 }
@@ -88,14 +100,20 @@ def create_table(dataset):
     return table
 
 def main():
-    dataset = ImageDataset(dataset_path, subset=True)
+
+    if debug:
+        DATA_NAME = wandb_config.RAW_DATA_TEST
+    else:
+        DATA_NAME = wandb_config.RAW_DATA
+
+    dataset = ImageDataset(dataset_path, size=None)
     run = wandb.init(
         project=wandb_config.WANDB_PROJECT, 
         entity=wandb_config.ENTITY,
         name="upload_data",
         job_type="upload-data"
         )
-    artifact = wandb.Artifact(wandb_config.RAW_DATA, type="raw_data")
+    artifact = wandb.Artifact(DATA_NAME, type="dataset-suadd")
     artifact.add_dir(os.path.join(dataset_path, 'inputs'), name="images")
     artifact.add_dir(os.path.join(dataset_path, 'semantic_annotations'), name="semantics")
     artifact.add_dir(os.path.join(dataset_path, 'depth_annotations'), name="depths")

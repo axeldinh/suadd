@@ -19,3 +19,10 @@ conda env create -f environment.yml
 - [ ] Shifts
 - [ ] Flips
 - [ ] Rescaling
+
+## Models:
+
+### Semantic Segmentation:
+
+- [ ] Test models from torchvision, huggingface, ... Take the best one
+- [ ] Use both semantic segmentation and depth estimation as one training task -> Need a single loss function
