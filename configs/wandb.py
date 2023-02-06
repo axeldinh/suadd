@@ -5,4 +5,5 @@ CLASSES = {i:c for i,c in enumerate([
     'animal', 'high_vegetation', 'ground_vehicle', 'façade',
      'wire', 'garden_furniture', 'concrete', 'roof',
       'gravel', 'soil', 'primeair_pattern', 'snow'])}
+CLASSES.update({255: 'unknown'})
 RAW_DATA = 'suadd'
