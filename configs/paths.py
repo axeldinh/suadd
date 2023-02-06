@@ -1,9 +1,10 @@
 
 import os
+from configs.globals import *
 
 # For my own computer
 if os.getcwd().split(os.path.sep)[0] == "C:":
-    dataset_path = "C:/Users/Axeld/Desktop/AICrowd/suadd/dataset"
+    dataset_path = "C:/Users/Axeld/Desktop/AICrowd/suadd/datasets/"
 # For clusters
 elif os.getcwd().split(os.path.sep)[1] == "home":
     dataset_path = "/home/dinhvan/master_project/dataset_axel/datasets/3d/CHUV/dataset_snapshot"
@@ -14,3 +15,8 @@ else:
     raise ValueError("Unknown directory structure")
 
 dataset_path = os.path.abspath(dataset_path)
+
+if debug:
+    dataset_path = os.path.join(dataset_path, "suadd-test")
+else:
+    dataset_path = os.path.join(dataset_path, "suadd")
