@@ -64,23 +64,3 @@ class LitModel(pl.LightningModule):
 
     def test_dataloader(self):
         return DataLoader(self.test_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
-
-
-if __name__ == "__main__":
-
-    config = {
-        "model": None,
-        "loss": None,
-        "optimizer": None,
-        "scheduler": None,
-        "lr": 0.001,
-        "batch_size": 4,
-        "num_workers": 4,
-        "epochs": 10,
-        "transform": None,
-        "train_ratio": 0.8,
-        "val_ratio": 0.1,
-        "dataset_path": dataset_path
-    }
-
-    model = LitModel(config)

@@ -20,18 +20,6 @@ def create_table(dataset):
         class_id_in_img = torch.unique(sem)
         class_in_img = [wandb_config.CLASSES[c.item()] for c in class_id_in_img]
 
-        # Check that the classes are well represented
-
-        #print(wandb_config.CLASSES)
-        #print([int(c in class_in_img) for c in wandb_config.CLASSES.values()])
-        #for cls in wandb_config.CLASSES:
-        #    sem_temp = sem.clone()
-        #    sem_temp[sem!=cls] = 0
-        #    overlay = make_overlay(img.type(torch.uint8), sem_temp)
-        #    imshow(overlay.numpy().transpose(1, 2, 0))
-        #    plt.title(wandb_config.CLASSES[cls])
-        #    plt.show()
-
         table.add_data(
             img_name,
             img_name.split("-")[0],

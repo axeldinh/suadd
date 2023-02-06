@@ -29,7 +29,8 @@ conda env create -f environment.yml
 
 # TODOs
 
-- [ ] Prepare data (balanced classes, train/val/test split, data augmentation)
+- [x] Split Data (make sure it is balanced)
+- [ ] data augmentation
 - [ ] Prepare PyTorch Lightning model (use debug mode)
 - [ ] Prepare WandB logging (use debug mode)
 - [ ] Do not forget to keep track of commit hashes for reproducibility

@@ -57,11 +57,7 @@ def split_dataset(dataset: Dataset, train_ratio: float, val_ratio: float) -> tup
 
     assert train_ratio + val_ratio <= 1, "Train ratio and val ratio must be less than or equal to 1"
 
-    num_samples = len(dataset)
-    num_train = int(num_samples * train_ratio)
-    num_val = int(num_samples * val_ratio)
     test_ratio = 1 - train_ratio - val_ratio
-    num_test = num_samples - num_train - num_val
 
     # If want each class to be equally represented in each split, given the classes
     train_idx = []
@@ -116,13 +112,6 @@ def split_dataset(dataset: Dataset, train_ratio: float, val_ratio: float) -> tup
     train_dataset = torch.utils.data.Subset(dataset, train_idx)
     val_dataset = torch.utils.data.Subset(dataset, val_idx)
     test_dataset = torch.utils.data.Subset(dataset, test_idx)
-
-    print("Train representation: ", train_representation)
-    print("Val representation: ", val_representation)
-    print("Test representation: ", test_representation)
-    print("Length of train: ", len(train_idx))
-    print("Length of val: ", len(val_idx))
-    print("Length of test: ", len(test_idx))
 
     return train_dataset, val_dataset, test_dataset
         
