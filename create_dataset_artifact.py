@@ -70,9 +70,9 @@ def main():
         job_type="upload-data"
         )
     artifact = wandb.Artifact(wandb_config.DATA_NAME, type="dataset-suadd")
-    artifact.add_dir(os.path.join(dataset_path, 'inputs'), name="images")
-    artifact.add_dir(os.path.join(dataset_path, 'semantic_annotations'), name="semantics")
-    artifact.add_dir(os.path.join(dataset_path, 'depth_annotations'), name="depths")
+    artifact.add_dir(os.path.join(dataset_path, 'inputs'), name="inputs")
+    artifact.add_dir(os.path.join(dataset_path, 'semantic_annotations'), name="semantic_annotations")
+    artifact.add_dir(os.path.join(dataset_path, 'depth_annotations'), name="depth_annotations")
     table = create_table(dataset)
     artifact.add(table, "suadd_table")
     run.log_artifact(artifact)
