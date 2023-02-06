@@ -11,7 +11,7 @@ dependencies:
   - pytorch-cuda=11.7
   - pytorch=1.13.0
   - pytorch-lightning=1.7.7
-  - wandb=0.13.6
+  - wandb=0.13.9
   - scikit-image=0.19.2
   - opencv=4.6.0
   - matplotlib=3.6.2
