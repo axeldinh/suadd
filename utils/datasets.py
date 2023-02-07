@@ -2,13 +2,13 @@ import os
 
 import numpy as np
 import torch
-from torchvision.io import read_image
-from torch.utils.data import Dataset, Subset
-from skimage.io import imread
-
 import wandb
+from skimage.io import imread
+from torch.utils.data import Dataset, Subset
+from torchvision.io import read_image
 
 import configs.wandb as wandb_config
+
 
 class ImageDataset(Dataset):
 
@@ -39,22 +39,25 @@ class ImageDataset(Dataset):
 
         if self.transform:
             image = self.transform(image)
+            semantic_annotation = self.transform(semantic_annotation, is_mask=True)
+            depth_annotation = self.transform(depth_annotation, is_mask=True)
 
         return image, semantic_annotation, depth_annotation
 
+
 def fetch_data_from_wandb():
     run = wandb.init(
-        project=wandb_config.WANDB_PROJECT, 
+        project=wandb_config.WANDB_PROJECT,
         entity=wandb_config.ENTITY,
         name="download_data",
         job_type="download-data"
-        )
+    )
     artifact = run.use_artifact(wandb_config.DATA_NAME, type="dataset-suadd")
     artifact_dir = artifact.download()
     return artifact_dir
 
-def split_dataset(dataset: Dataset, train_ratio: float, val_ratio: float) -> tuple([Subset, Subset, Subset]):
 
+def split_dataset(dataset: Dataset, train_ratio: float, val_ratio: float) -> tuple([Subset, Subset, Subset]):
     assert train_ratio + val_ratio <= 1, "Train ratio and val ratio must be less than or equal to 1"
 
     test_ratio = 1 - train_ratio - val_ratio
@@ -86,7 +89,7 @@ def split_dataset(dataset: Dataset, train_ratio: float, val_ratio: float) -> tup
             # Ratios to take into account the final number of images in each split
             train_value = train_representation[class_] / train_ratio,
             val_value = val_representation[class_] / val_ratio
-            test_value =  test_representation[class_] / test_ratio
+            test_value = test_representation[class_] / test_ratio
             # Add a vote to the split with the least representation of the class, if all equal add to train
             if train_value <= val_value and train_value <= test_value:
                 train_votes += 1
@@ -114,6 +117,3 @@ def split_dataset(dataset: Dataset, train_ratio: float, val_ratio: float) -> tup
     test_dataset = torch.utils.data.Subset(dataset, test_idx)
 
     return train_dataset, val_dataset, test_dataset
-        
-
-
