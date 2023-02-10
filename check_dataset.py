@@ -3,7 +3,7 @@ import os
 import torch
 from skimage.io import imsave
 
-from configs.paths import dataset_path, outputs_path
+from configs.globals import dataset_path, outputs_path
 from transforms.transforms_1 import TransformSet1
 from utils.datasets import ImageDataset
 from utils.utils_image import make_overlay, unpatchify
