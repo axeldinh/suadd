@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from torchmetrics import JaccardIndex, Dice
 
-import configs.paths
+import configs.paths as paths
 from configs.wandb import CLASSES
 from models.unet import UNet
 from utils.datasets import ImageDataset, fetch_data_from_wandb, split_dataset
@@ -39,8 +39,13 @@ class LitModel(pl.LightningModule):
         self.transform = config["transform"]
         self.train_ratio = config["train_ratio"]
         self.val_ratio = config["val_ratio"]
-        self.dataset_path = config["dataset_path"]
+        self.dataset_path = paths.dataset_path
 
+        # Set the seed for pytorch lightning, torch, numpy python.random
+        self.seed = config["seed"]
+        pl.seed_everything(self.seed)
+
+        # Load the datasets
         self.get_dataset()
         self.train_loader = self.train_dataloader()
         self.val_loader = self.val_dataloader()
@@ -93,7 +98,7 @@ class LitModel(pl.LightningModule):
         if not os.path.exists(self.dataset_path):
             self.dataset_path = fetch_data_from_wandb()
         dataset = ImageDataset(self.dataset_path, transform=self.transform)
-        self.train_set, self.val_set, self.test_set = split_dataset(dataset, self.train_ratio, self.val_ratio)
+        self.train_set, self.val_set, self.test_set = dataset.split_dataset(self.train_ratio, self.val_ratio)
 
     def train_dataloader(self):
         return DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
@@ -122,16 +127,15 @@ if __name__ == "__main__":
         "transform": TransformSet1(),
         "train_ratio": 0.8,
         "val_ratio": 0.1,
-        "dataset_path": configs.paths.dataset_path,
-        "device": "cuda" if torch.cuda.is_available() else "cpu"
+        "device": "cuda" if torch.cuda.is_available() else "cpu",
+        "seed": 0,
     }
 
     model = LitModel(config)
 
     for batch in model.train_loader:
-        images, semantic, depth = batch
-        output = model(images)
-        loss = model.loss(output['semantic'], output['depth'], semantic, depth)
+        output = model(batch['image'])
+        loss = model.loss(output['semantic'], output['depth'], batch['semantic'], batch['depth'])
         print(loss)
         break
 
