@@ -1,22 +1,25 @@
 import os
 
-import torch
-from torch.utils.data import DataLoader
 import pytorch_lightning as pl
+from torch import nn
+from torch.utils.data import DataLoader
 from torchmetrics import JaccardIndex, Dice
 
-from configs.globals import *
-from configs.paths import dataset_path
+import configs.paths
 from configs.wandb import CLASSES
-
+from models.unet import UNet
 from utils.datasets import ImageDataset, fetch_data_from_wandb, split_dataset
 from utils.metrics import si_log, abs_rel
+
 
 class LitModel(pl.LightningModule):
 
     def __init__(self, config):
-
         super().__init__()
+
+        self.test_set = None
+        self.val_set = None
+        self.train_set = None
 
         # Metrics for semantic segmentation
         self.iou = JaccardIndex(task='multiclass', num_classes=len(CLASSES), average='macro')
@@ -44,17 +47,42 @@ class LitModel(pl.LightningModule):
         self.val_loader = self.val_dataloader()
         self.test_loader = self.test_dataloader()
 
+    def forward(self, x):
+        return self.model(x)
+
+    def training_step(self, batch, batch_idx):
+        images, semantic, depth = batch
+        semantic_out, depth_out = self(images)
+        loss = self.loss(semantic_out, depth_out, semantic, depth)
+        self.log('train_loss', loss)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        images, semantic, depth = batch
+        semantic_out, depth_out = self(images)
+        loss = self.loss(semantic_out, depth_out, semantic, depth)
+        self.log('val_loss', loss)
+        return loss
+
+    def test_step(self, batch, batch_idx):
+        images, semantic, depth = batch
+        semantic_out, depth_out = self(images)
+        loss = self.loss(semantic_out, depth_out, semantic, depth)
+        self.log('test_loss', loss)
+        return loss
+
+    def configure_optimizers(self):
+        optimizer = self.optimizer(self.parameters(), lr=self.lr)
+        if self.scheduler is not None:
+            scheduler = self.scheduler(optimizer)
+            return [optimizer], [scheduler]
+        return optimizer
 
     def get_dataset(self):
-
         if not os.path.exists(self.dataset_path):
             self.dataset_path = fetch_data_from_wandb()
         dataset = ImageDataset(self.dataset_path, transform=self.transform)
-        train_set, val_set, test_set = split_dataset(dataset, self.train_ratio, self.val_ratio)
-
-        self.train_set = train_set
-        self.val_set = val_set
-        self.test_set = test_set
+        self.train_set, self.val_set, self.test_set = split_dataset(dataset, self.train_ratio, self.val_ratio)
 
     def train_dataloader(self):
         return DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
@@ -64,3 +92,42 @@ class LitModel(pl.LightningModule):
 
     def test_dataloader(self):
         return DataLoader(self.test_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
+
+
+if __name__ == "__main__":
+    import torch
+    import torch.nn as nn
+    from transforms.transforms_1 import TransformSet1
+    from losses.cross_entropy_mse import CrossEntropyMSE
+
+    config = {
+        "model": UNet(1, 1, 2, num_classes=len(CLASSES), return_depth=True),
+        "loss": CrossEntropyMSE(),
+        "optimizer": torch.optim.Adam,
+        "scheduler": None,
+        "lr": 0.001,
+        "batch_size": 4,
+        "num_workers": 4,
+        "epochs": 2,
+        "transform": TransformSet1(),
+        "train_ratio": 0.8,
+        "val_ratio": 0.1,
+        "dataset_path": configs.paths.dataset_path,
+        "device": "cuda" if torch.cuda.is_available() else "cpu"
+    }
+
+    model = LitModel(config)
+
+    for batch in model.train_loader:
+        images, semantic, depth = batch
+        semantic_out, depth_out = model(images)
+        loss = model.loss(semantic_out, depth_out, semantic, depth)
+        print(loss)
+        break
+
+    # Train, gpu if available
+    trainer = pl.Trainer(gpus=1 if torch.cuda.is_available() else 0, max_epochs=config["epochs"])
+    trainer.fit(model)
+
+    # Test
+    trainer.test(model)
