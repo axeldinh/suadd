@@ -1,16 +1,17 @@
 import os
-from tqdm import trange
-import wandb
-import torch
 
-from configs.paths import dataset_path
+import torch
+import wandb
+from tqdm import trange
+
 import configs.wandb as wandb_config
-from configs.globals import *
+from configs.globals import dataset_path
 from utils.datasets import ImageDataset
 
-def create_table(dataset):
 
-    table = wandb.Table(columns=["File_Name", "Part_1", "Part_2", "Image", "Depth", "Dataset"] + list(wandb_config.CLASSES.values()))
+def create_table(dataset):
+    table = wandb.Table(
+        columns=["File_Name", "Part_1", "Part_2", "Image", "Depth", "Dataset"] + list(wandb_config.CLASSES.values()))
 
     images_paths = dataset.images_paths
 
@@ -48,15 +49,15 @@ def create_table(dataset):
 
     return table
 
-def main():
 
+def main():
     dataset = ImageDataset(dataset_path, size=None)
     run = wandb.init(
-        project=wandb_config.WANDB_PROJECT, 
+        project=wandb_config.WANDB_PROJECT,
         entity=wandb_config.ENTITY,
         name="upload_data",
         job_type="upload-data"
-        )
+    )
     artifact = wandb.Artifact(wandb_config.DATA_NAME, type="dataset-suadd")
     artifact.add_dir(os.path.join(dataset_path, 'inputs'), name="inputs")
     artifact.add_dir(os.path.join(dataset_path, 'semantic_annotations'), name="semantic_annotations")
@@ -69,6 +70,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
