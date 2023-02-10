@@ -45,7 +45,13 @@ class ImageDataset(Dataset):
         if self.transform:
             image, semantic_annotation, depth_annotation = self.transform(image, semantic_annotation, depth_annotation)
 
-        return image, semantic_annotation, depth_annotation
+        output = {
+            "image": image,
+            "semantic": semantic_annotation,
+            "depth": depth_annotation
+        }
+
+        return output
 
 
 def fetch_data_from_wandb():
@@ -88,7 +94,7 @@ def split_dataset(dataset: Dataset, train_ratio: float, val_ratio: float) -> tup
     test_representation = np.zeros(len(wandb_config.CLASSES))
 
     for i in range(len(dataset)):
-        _, semantic_annotation, _ = dataset[i]
+        semantic_annotation = dataset[i]['semantic']
 
         class_in_image = torch.unique(semantic_annotation)
         # Make it an integer list, and replace the 255 class with -1

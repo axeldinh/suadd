@@ -15,4 +15,9 @@ class CrossEntropyMSE(nn.Module):
         depth_loss = 0
         if depth is not None:
             depth_loss = self.depth_loss(depth_out, depth)
-        return semantic_loss + depth_loss * self.coeff_depth
+        output = {
+            "semantic_loss": semantic_loss,
+            "depth_loss": depth_loss,
+            "loss": semantic_loss + depth_loss * self.coeff_depth
+        }
+        return output

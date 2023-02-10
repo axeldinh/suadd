@@ -1,7 +1,6 @@
 import os
 
 import pytorch_lightning as pl
-from torch import nn
 from torch.utils.data import DataLoader
 from torchmetrics import JaccardIndex, Dice
 
@@ -51,25 +50,37 @@ class LitModel(pl.LightningModule):
         return self.model(x)
 
     def training_step(self, batch, batch_idx):
-        images, semantic, depth = batch
-        semantic_out, depth_out = self(images)
-        loss = self.loss(semantic_out, depth_out, semantic, depth)
-        self.log('train_loss', loss)
-        return loss
+        images = batch['image']
+        semantic = batch['semantic']
+        depth = batch['depth']
+        output = self(images)
+        losses = self.loss(output['semantic'], output['depth'], semantic, depth)
+        self.log('train_loss', losses['loss'])
+        self.log('train_semantic_loss', losses['semantic_loss'])
+        self.log('train_depth_loss', losses['depth_loss'])
+        return losses
 
     def validation_step(self, batch, batch_idx):
-        images, semantic, depth = batch
-        semantic_out, depth_out = self(images)
-        loss = self.loss(semantic_out, depth_out, semantic, depth)
-        self.log('val_loss', loss)
-        return loss
+        images = batch['image']
+        semantic = batch['semantic']
+        depth = batch['depth']
+        output = self(images)
+        losses = self.loss(output['semantic'], output['depth'], semantic, depth)
+        self.log('val_loss', losses['loss'])
+        self.log('val_semantic_loss', losses['semantic_loss'])
+        self.log('val_depth_loss', losses['depth_loss'])
+        return losses
 
     def test_step(self, batch, batch_idx):
-        images, semantic, depth = batch
-        semantic_out, depth_out = self(images)
-        loss = self.loss(semantic_out, depth_out, semantic, depth)
-        self.log('test_loss', loss)
-        return loss
+        images = batch['image']
+        semantic = batch['semantic']
+        depth = batch['depth']
+        output = self(images)
+        losses = self.loss(output['semantic'], output['depth'], semantic, depth)
+        self.log('test_loss', losses['loss'])
+        self.log('test_semantic_loss', losses['semantic_loss'])
+        self.log('test_depth_loss', losses['depth_loss'])
+        return losses
 
     def configure_optimizers(self):
         optimizer = self.optimizer(self.parameters(), lr=self.lr)
@@ -96,7 +107,6 @@ class LitModel(pl.LightningModule):
 
 if __name__ == "__main__":
     import torch
-    import torch.nn as nn
     from transforms.transforms_1 import TransformSet1
     from losses.cross_entropy_mse import CrossEntropyMSE
 
@@ -120,8 +130,8 @@ if __name__ == "__main__":
 
     for batch in model.train_loader:
         images, semantic, depth = batch
-        semantic_out, depth_out = model(images)
-        loss = model.loss(semantic_out, depth_out, semantic, depth)
+        output = model(images)
+        loss = model.loss(output['semantic'], output['depth'], semantic, depth)
         print(loss)
         break
 

@@ -98,9 +98,14 @@ class UNet(nn.Module):
 
         x = self.last_layer(x)
 
-        segmentation = x[:, :self.num_classes, :, :]
+        semantic = x[:, :self.num_classes, :, :]
         depth = None
         if self.return_depth:
             depth = x[:, -1, :, :].unsqueeze(1)
 
-        return segmentation, depth
+        output = {
+            "semantic": semantic,
+            "depth": depth
+        }
+
+        return output
