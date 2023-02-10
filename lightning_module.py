@@ -4,11 +4,12 @@ import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from torchmetrics import JaccardIndex, Dice
 
-import configs.paths as paths
+from configs.globals import dataset_path
 from configs.wandb import CLASSES
 from models.unet import UNet
-from utils.datasets import ImageDataset, fetch_data_from_wandb, split_dataset
+from utils.datasets import ImageDataset, fetch_data_from_wandb
 from utils.metrics import si_log, abs_rel
+from utils.utils_image import unpatchify
 
 
 class LitModel(pl.LightningModule):
@@ -39,7 +40,7 @@ class LitModel(pl.LightningModule):
         self.transform = config["transform"]
         self.train_ratio = config["train_ratio"]
         self.val_ratio = config["val_ratio"]
-        self.dataset_path = paths.dataset_path
+        self.dataset_path = dataset_path
 
         # Set the seed for pytorch lightning, torch, numpy python.random
         self.seed = config["seed"]
@@ -66,25 +67,41 @@ class LitModel(pl.LightningModule):
         return losses
 
     def validation_step(self, batch, batch_idx):
-        images = batch['image']
-        semantic = batch['semantic']
-        depth = batch['depth']
-        output = self(images)
-        losses = self.loss(output['semantic'], output['depth'], semantic, depth)
-        self.log('val_loss', losses['loss'])
-        self.log('val_semantic_loss', losses['semantic_loss'])
-        self.log('val_depth_loss', losses['depth_loss'])
-        return losses
+        self.evaluation_step(batch, batch_idx, mode='val')
 
     def test_step(self, batch, batch_idx):
-        images = batch['image']
-        semantic = batch['semantic']
-        depth = batch['depth']
-        output = self(images)
-        losses = self.loss(output['semantic'], output['depth'], semantic, depth)
-        self.log('test_loss', losses['loss'])
-        self.log('test_semantic_loss', losses['semantic_loss'])
-        self.log('test_depth_loss', losses['depth_loss'])
+        self.evaluation_step(batch, batch_idx, mode='test')
+
+    def evaluation_step(self, batch, batch_idx, mode):
+        # Here the batch has shape (size_batch, num_patches, height, width)
+        semantics_out = []
+        depths_out = []
+        semantics = []
+        depths = []
+        for i in range(batch['image'].shape[0]):
+            image_shape = batch['image_shape'][i]
+            patches = batch['image'][i]
+            semantic = batch['semantic'][i]
+            semantic = unpatchify(semantic, image_shape).unsqueeze(0)
+            semantics.append(semantic)
+            depth = batch['depth'][i]
+            depth = unpatchify(depth, image_shape).unsqueeze(0)
+            depths.append(depth)
+            output = self(patches.unsqueeze(1))
+            semantic_out = output['semantic'].squeeze(1)
+            semantic_out = unpatchify(semantic_out, image_shape).unsqueeze(0)
+            semantics_out.append(semantic_out)
+            depth_out = output['depth'].squeeze(1)
+            depth_out = unpatchify(depth_out, image_shape).unsqueeze(0)
+            depths_out.append(depth_out)
+        semantic_out = torch.cat(semantics_out, dim=0)
+        depth_out = torch.cat(depths_out, dim=0)
+        semantic = torch.cat(semantics, dim=0)
+        depth = torch.cat(depths, dim=0)
+        losses = self.loss(semantic_out, depth_out, semantic, depth)
+        self.log(mode + '_loss', losses['loss'])
+        self.log(mode + '_semantic_loss', losses['semantic_loss'])
+        self.log(mode + '_depth_loss', losses['depth_loss'])
         return losses
 
     def configure_optimizers(self):
@@ -132,12 +149,6 @@ if __name__ == "__main__":
     }
 
     model = LitModel(config)
-
-    for batch in model.train_loader:
-        output = model(batch['image'])
-        loss = model.loss(output['semantic'], output['depth'], batch['semantic'], batch['depth'])
-        print(loss)
-        break
 
     # Train, gpu if available
     trainer = pl.Trainer(gpus=1 if torch.cuda.is_available() else 0, max_epochs=config["epochs"])
