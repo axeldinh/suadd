@@ -6,8 +6,7 @@ CLASSES = {i:c for i,c in enumerate([
     'water', 'asphalt', 'grass', 'human', 
     'animal', 'high_vegetation', 'ground_vehicle', 'façade',
      'wire', 'garden_furniture', 'concrete', 'roof',
-      'gravel', 'soil', 'primeair_pattern', 'snow'])}
-CLASSES.update({255: 'unknown'})
+      'gravel', 'soil', 'primeair_pattern', 'snow', 'unknown'])}
 RAW_DATA = 'suadd'
 RAW_DATA_TEST = 'suadd-test'
 
