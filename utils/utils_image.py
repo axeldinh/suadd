@@ -3,12 +3,41 @@ from torchvision.utils import draw_segmentation_masks
 
 
 def make_overlay(image, annotation):
+    """
+    Make an overlay of the image and the annotation
+    :param image: torch gray images (1, height, width)
+    :param annotation: torch gray images (1, height, width)
+    :return: overlay of the image and the annotation (3, height, width)
+    """
+    palette = [
+        (148, 218, 255),  # light blue, WATER
+        (85, 85, 85),  # almost black, ASPHALT
+        (200, 219, 190),  # light green, GRASS
+        (166, 133, 226),  # purple, HUMAN
+        (255, 171, 225),  # pink, ANIMAL
+        (40, 150, 114),  # green, HIGH VEGETATION
+        (234, 144, 133),  # orange, GROUND VEHICLE
+        (89, 82, 96),  # dark gray, FACADE
+        (255, 255, 0),  # yellow, WIRE
+        (110, 87, 121),  # dark purple, GARDEN FURNITURE
+        (205, 201, 195),  # light gray, CONCRETE
+        (212, 80, 121),  # medium red, ROOF
+        (159, 135, 114),  # light brown, GRAVEL
+        (102, 90, 72),  # dark brown, SOIL
+        (255, 255, 102),  # bright yellow, PRIMEAIR PATTERN
+        (251, 247, 240),  # almost white, SNOW
+        (0, 0, 0),  # black, UNKNOWN
+    ]
+
     classes = torch.unique(annotation)
+    # Sort the classes so that the overlay is always the same
+    classes = torch.sort(classes)[0]
+    palette = [palette[int(cls)] for cls in classes]
     masks = torch.zeros_like(annotation, dtype=bool)
     masks = masks.repeat(classes.shape[0], 1, 1)
     for j, cls in enumerate(classes):
         masks[j][annotation[0] == cls] = True
-    overlay = draw_segmentation_masks(image.repeat(3, 1, 1), masks, alpha=0.5)
+    overlay = draw_segmentation_masks(image.repeat(3, 1, 1), masks, alpha=0.5, colors=palette)
     return overlay
 
 
