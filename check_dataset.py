@@ -5,7 +5,7 @@ from skimage.io import imsave
 from torch.utils.data import DataLoader
 from tqdm import trange
 
-from configs.globals import dataset_path, outputs_path
+from configs.globals import DATASET_PATH, outputs_path
 from transforms.transforms_1 import TransformSet1
 from utils.datasets import ImageDataset
 from utils.utils_image import make_overlay, unpatchify
@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     print("Sanity check for dataset loading")
 
-    dataset = ImageDataset(dataset_path, transform=TransformSet1(patch_size=256))
+    dataset = ImageDataset(DATASET_PATH, transform=TransformSet1(patch_size=256))
     print("Dataset loaded successfully")
 
     train, val, test = dataset.split_dataset(0.8, 0.1)

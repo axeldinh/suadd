@@ -4,8 +4,7 @@ import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from torchmetrics import JaccardIndex, Dice
 
-from configs.globals import dataset_path
-from configs.wandb import CLASSES
+from configs.globals import DATASET_PATH, CLASSES
 from models.unet import UNet
 from utils.datasets import ImageDataset, fetch_data_from_wandb
 from utils.metrics import si_log, abs_rel
@@ -40,7 +39,7 @@ class LitModel(pl.LightningModule):
         self.transform = config["transform"]
         self.train_ratio = config["train_ratio"]
         self.val_ratio = config["val_ratio"]
-        self.dataset_path = dataset_path
+        self.dataset_path = DATASET_PATH
 
         # Set the seed for pytorch lightning, torch, numpy python.random
         self.seed = config["seed"]

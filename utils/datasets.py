@@ -7,6 +7,7 @@ from skimage.io import imread
 from torch.utils.data import Dataset, Subset
 from torchvision.io import read_image
 
+import configs.globals
 import configs.wandb as wandb_config
 
 
@@ -56,7 +57,7 @@ class ImageDataset(Dataset):
 
         image = read_image(image_path).float()
         semantic_annotation = read_image(semantic_annotation_path).float()
-        semantic_annotation[semantic_annotation == 255] = len(wandb_config.CLASSES) - 1
+        semantic_annotation[semantic_annotation == 255] = len(configs.globals.CLASSES) - 1
         depth_annotation = imread(depth_annotation_path).astype(np.float32)
         depth_annotation = torch.from_numpy(depth_annotation).unsqueeze(0)
 
@@ -119,9 +120,9 @@ class ImageDataset(Dataset):
         test_idx = []
 
         # Keep track of the number of images representing each class in each split
-        train_representation = np.zeros(len(wandb_config.CLASSES))
-        val_representation = np.zeros(len(wandb_config.CLASSES))
-        test_representation = np.zeros(len(wandb_config.CLASSES))
+        train_representation = np.zeros(len(configs.globals.CLASSES))
+        val_representation = np.zeros(len(configs.globals.CLASSES))
+        test_representation = np.zeros(len(configs.globals.CLASSES))
 
         for i in range(len(self)):
             semantic_annotation = self[i]['semantic']

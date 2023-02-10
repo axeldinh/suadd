@@ -1,7 +1,7 @@
 import wandb
 
 import configs.wandb as wandb_config
-from configs.globals import dataset_path
+from configs.globals import DATASET_PATH
 from utils.datasets import ImageDataset
 
 if __name__ == "__main__":
@@ -11,6 +11,6 @@ if __name__ == "__main__":
         name="test-load.data",
         job_type="data-load")
     artifact = run.use_artifact(wandb_config.DATA_NAME + ":latest", type="dataset-suadd")
-    artifact_dir = artifact.download(root=dataset_path)
+    artifact_dir = artifact.download(root=DATASET_PATH)
 
-    dataset = ImageDataset(dataset_path, size=None)
+    dataset = ImageDataset(DATASET_PATH, size=None)
