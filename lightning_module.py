@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader
 from torchmetrics import JaccardIndex, Dice
 
 from configs.globals import DATASET_PATH, CLASSES
-from models.unet import UNet
 from utils.datasets import ImageDataset, fetch_data_from_wandb
 from utils.metrics import si_log, abs_rel
 from utils.utils_image import unpatchify
@@ -124,34 +123,3 @@ class LitModel(pl.LightningModule):
 
     def test_dataloader(self):
         return DataLoader(self.test_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
-
-
-if __name__ == "__main__":
-    import torch
-    from transforms.transforms_1 import TransformSet1
-    from losses.cross_entropy_mse import CrossEntropyMSE
-
-    config = {
-        "model": UNet(1, 1, 2, num_classes=len(CLASSES), return_depth=True),
-        "loss": CrossEntropyMSE(),
-        "optimizer": torch.optim.Adam,
-        "scheduler": None,
-        "lr": 0.001,
-        "batch_size": 4,
-        "num_workers": 4,
-        "epochs": 2,
-        "transform": TransformSet1(),
-        "train_ratio": 0.8,
-        "val_ratio": 0.1,
-        "device": "cuda" if torch.cuda.is_available() else "cpu",
-        "seed": 0,
-    }
-
-    model = LitModel(config)
-
-    # Train, gpu if available
-    trainer = pl.Trainer(gpus=1 if torch.cuda.is_available() else 0, max_epochs=config["epochs"])
-    trainer.fit(model)
-
-    # Test
-    trainer.test(model)
