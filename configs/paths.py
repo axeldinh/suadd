@@ -5,6 +5,7 @@ from configs.globals import *
 # For my own computer
 if os.getcwd().split(os.path.sep)[0] == "C:":
     dataset_path = "C:/Users/Axeld/Desktop/AICrowd/suadd/datasets/"
+    outputs_path = "C:/Users/Axeld/Desktop/AICrowd/suadd/outputs/"
 # For clusters
 elif os.getcwd().split(os.path.sep)[1] == "home":
     dataset_path = "/home/dinhvan/master_project/dataset_axel/datasets/3d/CHUV/dataset_snapshot"
