@@ -81,24 +81,22 @@ class ImageDataset(Dataset):
         :return:
         """
         # Get mean and std for normalization
+        sum = 0.0
+        num_elements = 0
         for i in range(len(self.images_paths)):
             img_name = self.images_paths[i]
             image_path = os.path.join(self.images_folder, img_name)
             image = read_image(image_path).float()
-            if i == 0:
-                sum = 0
-                num_elements = 0
             sum += image.sum()
             num_elements += torch.numel(image)
 
         self.mean = sum / num_elements
 
+        std = 0.0
         for i in range(len(self.images_paths)):
             img_name = self.images_paths[i]
             image_path = os.path.join(self.images_folder, img_name)
             image = read_image(image_path).float()
-            if i == 0:
-                std = 0.0
             std += ((image - self.mean) ** 2).sum()
 
         self.std = torch.sqrt(std / (num_elements - 1))

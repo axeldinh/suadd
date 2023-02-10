@@ -1,7 +1,9 @@
-/datasets/*
+/datasets/
 /__pycache__/*
 *.pyc
 /.git/*
 /.
 wandb/*
 /.idea/*
+/lightning_logs/
+/outputs/

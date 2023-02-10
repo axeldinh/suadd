@@ -1,9 +1,9 @@
 import os
-from tqdm import tqdm
 
 import torch
 from skimage.io import imsave
 from torch.utils.data import DataLoader
+from tqdm import trange
 
 from configs.globals import dataset_path, outputs_path
 from transforms.transforms_1 import TransformSet1
@@ -23,16 +23,22 @@ if __name__ == "__main__":
     # Check that dataloaders work
     try:
         train_loader = DataLoader(train, batch_size=2, num_workers=0, shuffle=True)
+        for batch in train_loader:
+            break
     except Exception as e:
         print("Error in making train dataloader:", e)
 
     try:
         val_loader = DataLoader(val, batch_size=2, num_workers=0, shuffle=False)
+        for batch in val_loader:
+            break
     except Exception as e:
         print("Error in making val dataloader:", e)
 
     try:
         test_loader = DataLoader(test, batch_size=2, num_workers=0, shuffle=False)
+        for batch in test_loader:
+            break
     except Exception as e:
         print("Error in making test dataloader:", e)
     print("Dataloaders created successfully")
@@ -42,7 +48,8 @@ if __name__ == "__main__":
 
     print(f"\nSaving train images and overlays to {save_path}\n")
 
-    for i, data in tqdm(enumerate(train)):
+    for i in trange(10):
+        data = train[i]
 
         image = data["image"]
         semantic = data["semantic"]
@@ -62,16 +69,14 @@ if __name__ == "__main__":
         imsave(os.path.join(save_path, f"{i}_image.png"), image)
         imsave(os.path.join(save_path, f"{i}_overlay.png"), overlay)
         imsave(os.path.join(save_path, f"{i}_depth.png"), depth)
-
-        if i > 10:
-            break
 
     save_path = os.path.join(outputs_path, "check_dataset", "val")
     os.makedirs(save_path, exist_ok=True)
 
     print(f"\nSaving validation images and overlays to {save_path}\n")
 
-    for i, data in tqdm(enumerate(val)):
+    for i in trange(10):
+        data = val[i]
 
         image = data["image"]
         semantic = data["semantic"]
@@ -95,16 +100,14 @@ if __name__ == "__main__":
         imsave(os.path.join(save_path, f"{i}_image.png"), image)
         imsave(os.path.join(save_path, f"{i}_overlay.png"), overlay)
         imsave(os.path.join(save_path, f"{i}_depth.png"), depth)
-
-        if i > 10:
-            break
 
     save_path = os.path.join(outputs_path, "check_dataset", "test")
     os.makedirs(save_path, exist_ok=True)
 
     print(f"\nSaving testing images and overlays to {save_path}\n")
 
-    for i, data in tqdm(enumerate(test)):
+    for i in trange(10):
+        data = test[i]
 
         image = data["image"]
         semantic = data["semantic"]
@@ -128,6 +131,3 @@ if __name__ == "__main__":
         imsave(os.path.join(save_path, f"{i}_image.png"), image)
         imsave(os.path.join(save_path, f"{i}_overlay.png"), overlay)
         imsave(os.path.join(save_path, f"{i}_depth.png"), depth)
-
-        if i > 10:
-            break
