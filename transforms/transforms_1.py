@@ -2,7 +2,7 @@ import torch
 import torchvision.transforms as T
 
 from utils.transforms import RandomGamma, RandomNoise
-from utils.utils_image import patchify
+from utils.utils_image import patchify, unpatchify
 
 
 class TransformSet1:
@@ -57,7 +57,7 @@ class TransformSet1:
         :param semantic: torch gray images (1, height, width)
         :param depth: torch gray images (1, height, width)
         :param train: if True, apply the transforms, else normalize and make patches
-        :return: transformed torch gray images (1, height, width)
+        :return: transformed torch gray images (1, height, width) or several patches (1, patch_size, patch_size)
         """
 
         if image.max() > 1.0:
@@ -72,5 +72,37 @@ class TransformSet1:
 
         # Normalize
         image = self.normalize(image)
+
+        return image, semantic, depth
+
+    @staticmethod
+    def eval_untransform(image, semantic, depth, original_shape):
+        """
+        Inverse transforms the image to its original size, for evaluation images.
+        :param image: torch gray images (1, height, width) or several patches (1, patch_size, patch_size)
+        :param semantic: torch gray images (1, height, width) or several patches (1, patch_size, patch_size)
+        :param depth: torch gray images (1, height, width) or several patches (1, patch_size, patch_size)
+        :param original_shape: original shape of the image
+        :return: untransformed torch gray images (1, height, width)
+        """
+
+        dims = len(image.shape)
+        if dims == 3:
+            num_patches = image.shape[0]
+            patch_size = image.shape[1]
+        elif dims == 4:
+            if image.shape[1] != 1:
+                raise Exception(
+                    "Image must be gray. It should have shape (num_patches, 1, patch_size, patch_size)")
+            num_patches = image.shape[1]
+            patch_size = image.shape[2]
+        else:
+            raise Exception("Image must have 3 or 4 dimensions.")
+
+        image = image.view(num_patches, 1, patch_size, patch_size)
+
+        image = unpatchify(image, original_shape)
+
+        image = image.reshape(semantic.shape)
 
         return image, semantic, depth

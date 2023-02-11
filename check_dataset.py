@@ -9,7 +9,7 @@ from tqdm import trange
 from configs.experiments import load_config
 from configs.globals import DATASET_PATH, OUTPUTS_PATH
 from utils.datasets import ImageDataset
-from utils.utils_image import make_overlay, unpatchify
+from utils.utils_image import make_overlay
 
 
 def main(exp_id, command):
@@ -81,7 +81,7 @@ def main(exp_id, command):
 
     for i in trange(10):
         data = val[i]
-        save_eval_data(data, i, save_path)
+        save_eval_data(data, i, save_path, transform)
 
     save_path = os.path.join(OUTPUTS_PATH, "check_dataset", "test")
     os.makedirs(save_path, exist_ok=True)
@@ -90,20 +90,18 @@ def main(exp_id, command):
 
     for i in trange(10):
         data = test[i]
-        save_eval_data(data, i, save_path)
+        save_eval_data(data, i, save_path, transform)
 
 
-def save_eval_data(data, i, save_path):
+def save_eval_data(data, i, save_path, transform):
     image = data["image"]
     semantic = data["semantic"]
     depth = data["depth"]
-    image_shape = data["image_shape"]
-    image = image.reshape(1, 1, image.shape[-2], image.shape[-1])
-    semantic = semantic.reshape(1, 1, semantic.shape[-2], semantic.shape[-1])
-    depth = depth.reshape(1, 1, depth.shape[-2], depth.shape[-1])
-    image = unpatchify(image, image_shape).squeeze(0)
-    semantic = unpatchify(semantic, image_shape).squeeze(0)
-    depth = unpatchify(depth, image_shape).squeeze(0)
+    image_shape = data["image_shape"][0]
+    image = image.reshape(image.shape[0], image.shape[-2], image.shape[-1])
+    semantic = semantic.reshape(semantic.shape[0], semantic.shape[-2], semantic.shape[-1])
+    depth = depth.reshape(depth.shape[0], depth.shape[-2], depth.shape[-1])
+    image, semantic, depth = transform.eval_untransform(image, semantic, depth, image_shape)
     image = (image - image.min()) / (image.max() - image.min())
     image = (image * 255).type(torch.uint8)
     depth = (depth - depth.min()) / (depth.max() - depth.min())
