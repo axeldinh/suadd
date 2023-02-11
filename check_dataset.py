@@ -12,8 +12,8 @@ from utils.datasets import ImageDataset
 from utils.utils_image import make_overlay, unpatchify
 
 
-def main(exp_id):
-    config = load_config(exp_id)
+def main(exp_id, command):
+    config = load_config(exp_id, command=command)
     transform = config["transform"](**config["transform_args"])
 
     print("Sanity check for dataset loading, using config for experiment ", exp_id)
@@ -141,4 +141,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp_id", "-t", type=str, required=True, help="Experiment ID")
     args = parser.parse_args()
-    main(**vars(args))
+
+    # Recover the complete command entered by the user
+    command = " ".join(["python"] + [f"--{k} {v}" for k, v in vars(args).items() if v is not None])
+
+    main(**vars(args), command=command)
