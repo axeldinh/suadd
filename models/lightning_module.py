@@ -61,9 +61,6 @@ class LitModel(pl.LightningModule):
         self.save_hyperparameters()
 
     def forward(self, x):
-        print("Device Lightning:", self.device)
-        print("Device model:", next(self.model.parameters()).device)
-        print("Device x:", x.device)
         return self.model(x)
 
     def training_step(self, batch, batch_idx):

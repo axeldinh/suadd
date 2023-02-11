@@ -56,7 +56,7 @@ class UNet(nn.Module):
 
         self.channels_in = channels_in
         self.first_layer_channels = first_layer_channels
-        self.encoding_layers = [DoubleConv(self.channels_in, self.first_layer_channels)]
+        self.encoding_layers = nn.ModuleList([DoubleConv(self.channels_in, self.first_layer_channels)])
         self.depth = depth
         self.num_classes = num_classes
         self.out_channels = num_classes
@@ -66,15 +66,15 @@ class UNet(nn.Module):
 
         self.max_pool = nn.MaxPool2d(kernel_size=2)
 
-        self.encoding_layers += [
+        self.encoding_layers += nn.ModuleList([
             DoubleConv(self.first_layer_channels * (2 ** i), self.first_layer_channels * (2 ** (i + 1)))
             for i in range(depth)
-        ]
+        ])
 
-        self.decoding_layers = [
+        self.decoding_layers = nn.ModuleList([
             DecodingLayer(self.first_layer_channels * (2 ** i))
             for i in range(depth, 0, -1)
-        ]
+        ])
 
         self.last_layer = nn.Conv2d(in_channels=first_layer_channels, out_channels=self.out_channels, kernel_size=3,
                                     padding=1)
