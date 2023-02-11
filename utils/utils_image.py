@@ -44,12 +44,13 @@ def make_overlay(image, annotation):
 def patchify(image, patch_size):
     """
     Make patches out of an image of a desired size. Some patches may overlap.
-    :param image: torch gray images (1, height, width)
+    :param image: torch gray images (num_channels, height, width)
     :param patch_size: size of the patches
-    :return: patches of the image (n_patches, patch_size, patch_size)
+    :return: patches of the image (n_patches, num_channels, patch_size, patch_size)
     """
     image_height = image.shape[1]
     image_width = image.shape[2]
+    num_channels = image.shape[0]
 
     num_patches_height = image_height // patch_size
     num_patches_width = image_width // patch_size
@@ -58,7 +59,7 @@ def patchify(image, patch_size):
     if image_width % patch_size != 0:
         num_patches_width += 1
 
-    patches = torch.zeros((num_patches_height * num_patches_width, patch_size, patch_size))
+    patches = torch.zeros((num_patches_height * num_patches_width, num_channels, patch_size, patch_size))
     for i in range(num_patches_height * num_patches_width):
         x = i % num_patches_width
         y = i // num_patches_width
@@ -79,14 +80,15 @@ def patchify(image, patch_size):
 def unpatchify(patches, image_shape):
     """
     Reconstruct an image from patches. The values are averaged if the same pixel is covered by multiple patches.
-    :param patches: patches of the image (n_patches, patch_size, patch_size)
+    :param patches: patches of the image (n_patches, number_channels, patch_size, patch_size)
     :param image_size: size of the image
     :return: torch gray images (1, height, width)
     """
 
     image_height = image_shape[1]
     image_width = image_shape[2]
-    patch_size = patches.shape[1]
+    patch_size = patches.shape[2]
+    num_channels = patches.shape[1]
 
     num_patches_height = image_height // patch_size
     num_patches_width = image_width // patch_size
@@ -95,8 +97,8 @@ def unpatchify(patches, image_shape):
     if image_width % patch_size != 0:
         num_patches_width += 1
 
-    image = torch.zeros(image_shape)
-    mask = torch.zeros(image_shape)
+    image = torch.zeros(num_channels, image_height, image_width)
+    mask = torch.zeros(num_channels, image_height, image_width)
     for i in range(num_patches_height * num_patches_width):
         x = i % num_patches_width
         y = i // num_patches_width
@@ -108,6 +110,7 @@ def unpatchify(patches, image_shape):
             slice_x = slice(image_width - patch_size, image_width)
         else:
             slice_x = slice(x * patch_size, (x + 1) * patch_size)
+
         image[:, slice_y, slice_x] += patches[i]
         mask[:, slice_y, slice_x] += 1
 
