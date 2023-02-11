@@ -1,12 +1,13 @@
 import os
 
 import pytorch_lightning as pl
+import torch
 from torch.utils.data import DataLoader
 from torchmetrics import JaccardIndex, Dice
 
 from configs.globals import DATASET_PATH, CLASSES
 from utils.datasets import ImageDataset, fetch_data_from_wandb
-from utils.metrics import si_log, abs_rel
+from utils.metrics import si_log as SILOG
 from utils.utils_image import unpatchify
 
 
@@ -24,8 +25,7 @@ class LitModel(pl.LightningModule):
         self.dice = Dice(num_classes=len(CLASSES), average='macro')
 
         # Metrics for depth estimation (use numpy)
-        self.si_log = si_log
-        self.abs_rel = abs_rel
+        self.si_log = SILOG
 
         self.model = config["model"]
         self.loss = config["loss"]
@@ -46,9 +46,6 @@ class LitModel(pl.LightningModule):
 
         # Load the datasets
         self.get_dataset()
-        self.train_loader = self.train_dataloader()
-        self.val_loader = self.val_dataloader()
-        self.test_loader = self.test_dataloader()
 
     def forward(self, x):
         return self.model(x)
@@ -65,42 +62,74 @@ class LitModel(pl.LightningModule):
         return losses
 
     def validation_step(self, batch, batch_idx):
-        self.evaluation_step(batch, batch_idx, mode='val')
+        return self.evaluation_step(batch, batch_idx, mode='val')
+
+    def validation_epoch_end(self, outputs):
+        self.evaluation_epoch_end(outputs, mode='val')
 
     def test_step(self, batch, batch_idx):
-        self.evaluation_step(batch, batch_idx, mode='test')
+        return self.evaluation_step(batch, batch_idx, mode='test')
+
+    def test_epoch_end(self, outputs):
+        self.evaluation_epoch_end(outputs, mode='test')
 
     def evaluation_step(self, batch, batch_idx, mode):
         # Here the batch has shape (size_batch, num_patches, height, width)
-        semantics_out = []
-        depths_out = []
-        semantics = []
-        depths = []
+        losses = []
+        semantic_losses = []
+        depth_losses = []
+        ious = []
+        si_logs = []
         for i in range(batch['image'].shape[0]):
             image_shape = batch['image_shape'][i]
             patches = batch['image'][i]
             semantic = batch['semantic'][i]
-            semantic = unpatchify(semantic, image_shape).unsqueeze(0)
-            semantics.append(semantic)
-            depth = batch['depth'][i]
-            depth = unpatchify(depth, image_shape).unsqueeze(0)
-            depths.append(depth)
-            output = self(patches.unsqueeze(1))
-            semantic_out = output['semantic'].squeeze(1)
+            depth = batch['depth'][i].squeeze(1)
+            output = self(patches)
+            semantic_out = output['semantic']
             semantic_out = unpatchify(semantic_out, image_shape).unsqueeze(0)
-            semantics_out.append(semantic_out)
-            depth_out = output['depth'].squeeze(1)
-            depth_out = unpatchify(depth_out, image_shape).unsqueeze(0)
-            depths_out.append(depth_out)
-        semantic_out = torch.cat(semantics_out, dim=0)
-        depth_out = torch.cat(depths_out, dim=0)
-        semantic = torch.cat(semantics, dim=0)
-        depth = torch.cat(depths, dim=0)
-        losses = self.loss(semantic_out, depth_out, semantic, depth)
-        self.log(mode + '_loss', losses['loss'])
-        self.log(mode + '_semantic_loss', losses['semantic_loss'])
-        self.log(mode + '_depth_loss', losses['depth_loss'])
-        return losses
+            depth_out = output['depth']
+            if depth_out is not None:
+                depth_out = unpatchify(depth_out, image_shape).squeeze(1)
+            else:
+                depth_out = None
+            semantic_pred = torch.argmax(semantic_out, dim=1)
+            depth[depth == 0] = torch.nan
+            losses_img = self.loss(semantic_out, depth_out, semantic, depth)
+            iou = self.iou(semantic_pred, semantic)
+            if depth_out is not None:
+                si_log = self.si_log(depth_out.flatten(), depth.flatten())
+            else:
+                si_log = 0
+            losses.append(losses_img['loss'])
+            semantic_losses.append(losses_img['semantic_loss'])
+            depth_losses.append(losses_img['depth_loss'])
+            ious.append(iou)
+            si_logs.append(si_log)
+        metrics = {
+            'loss': torch.stack(losses).mean(),
+            'semantic_loss': torch.stack(semantic_losses).sum(),
+            'depth_loss': torch.stack(depth_losses).sum(),
+            'iou': torch.stack(ious).sum(),
+            'si_log': torch.stack(si_logs).sum()
+        }
+        return metrics
+
+    def evaluation_epoch_end(self, outputs, mode):
+
+        num_images = len(self.val_set) if mode == 'val' else len(self.test_set)
+
+        all_metrics = {}
+        for metric in outputs[0].keys():
+            all_metrics[metric] = 0
+        for output in outputs:
+            for metric in output.keys():
+                all_metrics[metric] += output[metric]
+        for metric in all_metrics.keys():
+            all_metrics[metric] /= num_images
+
+        for metric in all_metrics.keys():
+            self.log(f'{mode}_{metric}', all_metrics[metric])
 
     def configure_optimizers(self):
         optimizer = self.optimizer(self.parameters(), lr=self.lr)
@@ -118,8 +147,9 @@ class LitModel(pl.LightningModule):
     def train_dataloader(self):
         return DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
 
+    # Batch size is 1 for validation and test
     def val_dataloader(self):
-        return DataLoader(self.val_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
+        return DataLoader(self.val_set, batch_size=1, num_workers=self.num_workers, shuffle=False)
 
     def test_dataloader(self):
-        return DataLoader(self.test_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=False)
+        return DataLoader(self.test_set, batch_size=1, num_workers=self.num_workers, shuffle=False)
