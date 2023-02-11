@@ -18,10 +18,10 @@ config_1 = {
     ##############################
     # Data configuration
     ##############################
-    "batch_size": 1,
+    "batch_size": 8,
     "num_workers": 0,
-    "train_ratio": 0.95,
-    "val_ratio": 0.05,
+    "train_ratio": 0.8,
+    "val_ratio": 0.1,
 
     ##############################
     # Model configuration
