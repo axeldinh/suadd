@@ -33,8 +33,9 @@ class ImageDataset(Dataset):
 
         self.mean = None
         self.std = None
-        self.compute_mean_std()
-        self.transform.set_mean_std(self.mean, self.std)
+        if self.transform is not None:
+            self.compute_mean_std()
+            self.transform.set_mean_std(self.mean, self.std)
 
     def __len__(self):
         return len(self.images_paths)
