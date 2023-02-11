@@ -69,8 +69,6 @@ class TransformSet1:
 
         else:
             image = patchify(image, self.patch_size)
-            semantic = patchify(semantic, self.patch_size)
-            depth = patchify(depth, self.patch_size)
 
         # Normalize
         image = self.normalize(image)
