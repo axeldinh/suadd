@@ -14,7 +14,6 @@ from utils.utils_image import unpatchify, make_overlay
 
 
 # TODO: Remove the unpatchify function from here, should be handled by the transform
-# TODO: Create notebook to run on colab
 
 
 class LitModel(pl.LightningModule):
@@ -231,7 +230,12 @@ class LitModel(pl.LightningModule):
     def get_dataset(self):
         if not os.path.exists(self.dataset_path) or self.config["use_wandb"]:
             self.dataset_path = fetch_data_from_wandb()
-        dataset = ImageDataset(self.dataset_path, transform=self.transform)
+        dataset = ImageDataset(
+            self.dataset_path,
+            transform=self.transform,
+            size=self.config["number_images"],
+            store_images=self.config["store_images"]
+        )
         self.train_set, self.val_set, self.test_set = dataset.split_dataset(self.train_ratio, self.val_ratio)
 
     def train_dataloader(self):

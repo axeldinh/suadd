@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 import numpy as np
 import torch
@@ -122,17 +123,17 @@ class ImageDataset(Dataset):
         Compute the mean and std of the training dataset
         :return:
         """
-        # Get mean and std for normalization
-        sum = 0.0
+
+        sum_pixels = 0.0
         num_elements = 0
         for i in range(len(self.images_paths)):
             img_name = self.images_paths[i]
             image_path = os.path.join(self.images_folder, img_name)
             image = read_image(image_path).float()
-            sum += image.sum()
+            sum_pixels += image.sum()
             num_elements += torch.numel(image)
 
-        self.mean = sum / num_elements
+        self.mean = sum_pixels / num_elements
 
         std = 0.0
         for i in range(len(self.images_paths)):
@@ -141,9 +142,9 @@ class ImageDataset(Dataset):
             image = read_image(image_path).float()
             std += ((image - self.mean) ** 2).sum()
 
-        self.std = torch.sqrt(std / (num_elements - 1))
+        self.std = torch.sqrt(torch.tensor(std / (num_elements - 1)))
 
-    def split_dataset(self, train_ratio: float, val_ratio: float) -> tuple([Subset, Subset, Subset]):
+    def split_dataset(self, train_ratio: float, val_ratio: float) -> tuple[Subset[Any], Subset[Any], Subset[Any]]:
         """
         Splits the dataset into train validation and test.
         The classes are equally represented in each split.

@@ -18,6 +18,8 @@ config_1 = {
     ##############################
     # Data configuration
     ##############################
+    "store_images": True,  # If true, all images in the folder will be stored in memory at once
+    "number_images": None,  # Number of images contained in the whole dataset if None all images will be used
     "batch_size": 8,
     "num_workers": 0,
     "train_ratio": 0.8,
