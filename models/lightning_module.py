@@ -28,7 +28,7 @@ class LitModel(pl.LightningModule):
 
         self.config = config
 
-        self.model = config["model"](**config["model_args"]).to(self.device)
+        self.model = config["model"](**config["model_args"])
         self.loss = config["loss"]
         self.optimizer = config["optimizer"]
         self.scheduler = config["scheduler"]
@@ -53,14 +53,17 @@ class LitModel(pl.LightningModule):
         # Metrics for semantic segmentation and depth estimation
         self.SEMANTIC_METRICS = {
             'semantic/iou': JaccardIndex(task='multiclass', num_classes=len(CLASSES), average=None,
-                                         ignore_index=len(CLASSES) - 1).to(self.device),
+                                         ignore_index=len(CLASSES) - 1),
             'semantic/dice': Dice(num_classes=len(CLASSES), average='macro',
-                                  ignore_index=len(CLASSES) - 1).to(self.device),
+                                  ignore_index=len(CLASSES) - 1),
         }
 
         self.save_hyperparameters()
 
     def forward(self, x):
+        print("Device Lightning:", self.device)
+        print("Device model:", next(self.model.parameters()).device)
+        print("Device x:", x.device)
         return self.model(x)
 
     def training_step(self, batch, batch_idx):
@@ -94,9 +97,9 @@ class LitModel(pl.LightningModule):
         for i in range(batch['image'].shape[0]):
 
             image_shape = batch['image_shape'][i]
-            patches = batch['image'][i].to(self.device)
-            semantic = batch['semantic'][i].to(self.device)
-            depth = batch['depth'][i].squeeze(1).to(self.device)
+            patches = batch['image'][i]
+            semantic = batch['semantic'][i]
+            depth = batch['depth'][i].squeeze(1)
 
             ##############################
             # Get the predictions for each image
