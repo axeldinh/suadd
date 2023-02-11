@@ -12,10 +12,7 @@ from utils.metrics import compute_depth_metrics
 from utils.utils_image import unpatchify
 
 
-# TODO: Get the iou for each class before averaging
-# TODO: Get the depth metrics for each class (use semantic annotation to get the mask)
 # TODO: Create notebook to run on colab
-# TODO: Make the model robust to cancel training, save the best model and resume training from trial_id
 
 
 class LitModel(pl.LightningModule):
@@ -121,10 +118,10 @@ class LitModel(pl.LightningModule):
             semantic_metrics = self.compute_semantic_metrics(semantic_pred, semantic)
             all_metrics_img = {**losses_img, **semantic_metrics}
             depth_metrics = None
+            shape = (depth.shape[-2], depth.shape[-1])
             if depth_out is not None:
-                depth_metrics = compute_depth_metrics(depth_out.flatten(), depth.flatten())
-                # Add "depth_" to the keys
-                depth_metrics = {f"depth_{k}": v for k, v in depth_metrics.items()}
+                depth_metrics = self.compute_depth_metrics(depth_out.reshape(shape), depth.reshape(shape),
+                                                           semantic.reshape(shape))
                 all_metrics_img.update(depth_metrics)
 
             ##############################
@@ -182,10 +179,41 @@ class LitModel(pl.LightningModule):
         for metric_name, metric in self.SEMANTIC_METRICS.items():
             if metric_name == "semantic/iou":
                 ious = metric(prediction, target.long())
-                for i in range(1, self.num_classes):
+                for i in CLASSES.keys():
                     metrics[f"semantic/ious/{CLASSES[int(i)]}"] = ious[i]
-                metrics["semantic/iou_mean"] = ious.mean()
+                # Unknown class is not included in the iou
+                metrics["semantic/ious/mean"] = ious[:-1].mean()
             metrics[metric_name] = metric(prediction, target.long())
+        return metrics
+
+    def compute_depth_metrics(self, prediction, target, semantic):
+        """
+        Compute the depth metrics for each class and for all the image
+        :param prediction: depth prediction
+        :param target: depth target
+        :param semantic: semantic target
+        :return:
+        """
+        metrics = {}
+        zeros_classes = []
+        for class_ in CLASSES.keys():
+            mask = semantic == class_
+            if mask.sum() == 0:
+                zeros_classes.append(class_)
+            else:
+                depth_pred = prediction[mask]
+                depth_target = target[mask]
+                depth_metrics = compute_depth_metrics(depth_pred.flatten(), depth_target.flatten())
+                for k, v in depth_metrics.items():
+                    metrics[f"depth/{k}/{CLASSES[class_]}"] = v
+        for class_ in zeros_classes:
+            for k in depth_metrics.keys():
+                metrics[f"depth/{k}/{CLASSES[class_]}"] = torch.tensor(0.)
+
+        metrics_full = compute_depth_metrics(prediction.flatten(), target.flatten())
+        metrics_full = {f"depth/{k}/full": v for k, v in metrics_full.items()}
+        metrics.update(metrics_full)
+
         return metrics
 
     def configure_optimizers(self):
