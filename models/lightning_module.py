@@ -65,6 +65,8 @@ class LitModel(pl.LightningModule):
         images = batch['image'].to(self.device)
         semantic = batch['semantic'].to(self.device)
         depth = batch['depth'].to(self.device)
+
+        print(self.model.device, images.device, self.device)
         output = self(images)
         losses = self.loss(output['semantic'], output['depth'], semantic, depth)
         self.log('train/loss', losses['loss'])
