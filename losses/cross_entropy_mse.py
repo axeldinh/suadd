@@ -16,7 +16,6 @@ class CrossEntropyMSE(nn.Module):
         depth_loss = 0
         # Remove the nans from the depth
         if depth is not None:
-            depth = depth.squeeze(1)
             mask = ~torch.isnan(depth)
             depth = depth[mask]
             depth_out = depth_out[mask]
