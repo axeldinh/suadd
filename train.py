@@ -13,7 +13,7 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, message="Checkpoint directory")
 warnings.filterwarnings("ignore", category=UserWarning, message="The dataloader,")
 
-def main(exp_id, trial_id, epochs, no_wandb, command):
+def main(exp_id, trial_id, epochs, no_wandb, profile, command):
 
     config = load_config(exp_id, command, trial_id)
 
@@ -64,6 +64,7 @@ def main(exp_id, trial_id, epochs, no_wandb, command):
         auto_lr_find=True,
         auto_scale_batch_size='power',
         num_sanity_val_steps=0,
+        profiler="advanced" if profile else None,
     )
 
     trainer.tune(model)
@@ -81,6 +82,7 @@ if __name__ == "__main__":
     parser.add_argument("--trial_id", "-t", type=int, help="Trial index")
     parser.add_argument("--no_wandb", "-w", action="store_true", help="Use wandb")
     parser.add_argument("--epochs", "-ep", type=int, help="Number of epochs", default=-1)
+    parser.add_argument("--profile", "-p", action="store_true", help="Profile the code")
 
     args = parser.parse_args()
 
