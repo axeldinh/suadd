@@ -217,7 +217,7 @@ class LitModel(pl.LightningModule):
                     metrics[f"depth/{k}/{CLASSES[class_]}"] = v
         for class_ in zeros_classes:
             for k in depth_metrics.keys():
-                metrics[f"depth/{k}/{CLASSES[class_]}"] = torch.tensor(0.)
+                metrics[f"depth/{k}/{CLASSES[class_]}"] = torch.tensor(0.).to(prediction.device)
 
         metrics_full = compute_depth_metrics(prediction.flatten(), target.flatten())
         metrics_full = {f"depth/{k}/full": v for k, v in metrics_full.items()}
