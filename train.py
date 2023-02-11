@@ -7,7 +7,7 @@ from pytorch_lightning.loggers import WandbLogger
 
 from configs.experiments import load_config
 from configs.wandb import WANDB_PROJECT, ENTITY
-from lightning_module import LitModel
+from models.lightning_module import LitModel
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, message="Checkpoint directory")

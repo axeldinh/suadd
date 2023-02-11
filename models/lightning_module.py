@@ -11,7 +11,7 @@ from utils.datasets import ImageDataset, fetch_data_from_wandb
 from utils.metrics import compute_depth_metrics
 from utils.utils_image import unpatchify
 
-
+# TODO: Remove the unpatchify function from here, should be handled by the transform
 # TODO: Create notebook to run on colab
 
 
