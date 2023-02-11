@@ -72,8 +72,8 @@ class LitModel(pl.LightningModule):
         semantic = batch['semantic']
         depth = batch['depth']
 
-        output = self(images)
-        losses = self.loss(output['semantic'], output['depth'], semantic, depth)
+        semantic_out, depth_out = self(images)
+        losses = self.loss(semantic_out, depth_out, semantic, depth)
         self.log('train/loss', losses['loss'])
         self.log('train/semantic_loss', losses['semantic_loss'])
         self.log('train/depth_loss', losses['depth_loss'])
@@ -106,10 +106,8 @@ class LitModel(pl.LightningModule):
             # Get the predictions for each image
             ##############################
 
-            output = self(patches)
-            semantic_out = output['semantic']
+            semantic_out, depth_out = self(patches)
             semantic_out = unpatchify(semantic_out, image_shape).unsqueeze(0)
-            depth_out = output['depth']
             if depth_out is not None:
                 depth_out = unpatchify(depth_out, image_shape).squeeze(1)
             else:

@@ -103,9 +103,5 @@ class UNet(nn.Module):
         if self.return_depth:
             depth = x[:, -1, :, :].unsqueeze(1)
 
-        output = {
-            "semantic": semantic,
-            "depth": depth
-        }
 
-        return output
+        return semantic, depth

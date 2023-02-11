@@ -37,8 +37,7 @@ def main(exp_id, trial_id, epochs, no_wandb, command):
     else:
         logger = TensorBoardLogger(
             save_dir=config["save_path"],
-            name=config["name"],
-            version=trial_id,
+            name="tensorboard",
             log_graph=True,
         )
 
