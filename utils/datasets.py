@@ -17,10 +17,21 @@ class ImageDataset(Dataset):
     The transforms are applied at each iteration, so they should be random.
     """
 
-    def __init__(self, folder, transform=None, size=None):
+    def __init__(self, folder, transform=None, store_images=False, size=None):
+        """
+        Create a dataset for the SUADD Challenge.
+        :param folder: path to the folder containing the images, semantic annotations and depth annotations
+        :param transform: transform to apply to the images
+        :param store_images: if True, the images are stored in memory else they are read from the disk at each iteration
+        :param size: number of images to use if None, all the images are used
+        """
         self.train_idx = None
         self.val_idx = None
         self.test_idx = None
+
+        self.size = size
+        self.store_images = store_images
+
         self.images_folder = os.path.join(folder, 'inputs')
         self.semantic_annotations_folder = os.path.join(folder, 'semantic_annotations')
         self.depth_annotations_folder = os.path.join(folder, 'depth_annotations')
@@ -37,6 +48,17 @@ class ImageDataset(Dataset):
             self.compute_mean_std()
             self.transform.set_mean_std(self.mean, self.std)
 
+        if store_images:
+            self.images = []
+            self.semantic_annotations = []
+            self.depth_annotations = []
+            for i in range(len(self.images_paths)):
+                img_name = self.images_paths[i]
+                depth_annotation, image, semantic_annotation = self.load_datapoint(img_name)
+                self.images.append(image)
+                self.semantic_annotations.append(semantic_annotation)
+                self.depth_annotations.append(depth_annotation)
+
     def __len__(self):
         return len(self.images_paths)
 
@@ -52,18 +74,13 @@ class ImageDataset(Dataset):
             test = idx in self.test_idx
 
         img_name = self.images_paths[idx]
-        image_path = os.path.join(self.images_folder, img_name)
-        semantic_annotation_path = os.path.join(self.semantic_annotations_folder, img_name)
-        depth_annotation_path = os.path.join(self.depth_annotations_folder, img_name)
 
-        image = read_image(image_path).float()
-        semantic_annotation = read_image(semantic_annotation_path).float()
-        semantic_annotation[semantic_annotation == 255] = len(configs.globals.CLASSES) - 1
-        depth_annotation = imread(depth_annotation_path).astype(np.float32)
-        mask = depth_annotation == 0
-        depth_annotation = (depth_annotation - 1.) / 128.
-        depth_annotation[mask] = 0
-        depth_annotation = torch.from_numpy(depth_annotation).unsqueeze(0)
+        if self.store_images:
+            depth_annotation = self.depth_annotations[idx]
+            image = self.images[idx]
+            semantic_annotation = self.semantic_annotations[idx]
+        else:
+            depth_annotation, image, semantic_annotation = self.load_datapoint(img_name)
 
         image_shape = image.shape
 
@@ -80,6 +97,25 @@ class ImageDataset(Dataset):
         }
 
         return output
+
+    def load_datapoint(self, img_name):
+        """
+        Load a single datapoint
+        :param img_name: name of the image
+        :return: the image, the semantic annotation and the depth annotation
+        """
+        image_path = os.path.join(self.images_folder, img_name)
+        semantic_annotation_path = os.path.join(self.semantic_annotations_folder, img_name)
+        depth_annotation_path = os.path.join(self.depth_annotations_folder, img_name)
+        image = read_image(image_path).float()
+        semantic_annotation = read_image(semantic_annotation_path).float()
+        semantic_annotation[semantic_annotation == 255] = len(configs.globals.CLASSES) - 1
+        depth_annotation = imread(depth_annotation_path).astype(np.float32)
+        mask = depth_annotation == 0
+        depth_annotation = (depth_annotation - 1.) / 128.
+        depth_annotation[mask] = 0
+        depth_annotation = torch.from_numpy(depth_annotation).unsqueeze(0)
+        return depth_annotation, image, semantic_annotation
 
     def compute_mean_std(self):
         """
