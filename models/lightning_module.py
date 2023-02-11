@@ -53,9 +53,9 @@ class LitModel(pl.LightningModule):
         # Metrics for semantic segmentation and depth estimation
         self.SEMANTIC_METRICS = {
             'semantic/iou': JaccardIndex(task='multiclass', num_classes=len(CLASSES), average=None,
-                                         ignore_index=len(CLASSES) - 1),
+                                         ignore_index=len(CLASSES) - 1).to(self.device),
             'semantic/dice': Dice(num_classes=len(CLASSES), average='macro',
-                                  ignore_index=len(CLASSES) - 1),
+                                  ignore_index=len(CLASSES) - 1).to(self.device),
         }
 
         self.save_hyperparameters()
