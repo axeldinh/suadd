@@ -28,6 +28,8 @@ class LitModel(pl.LightningModule):
 
         self.config = config
 
+        print(self.device)
+
         self.model = config["model"](**config["model_args"]).to(self.device)
         self.loss = config["loss"]
         self.optimizer = config["optimizer"]
@@ -64,9 +66,9 @@ class LitModel(pl.LightningModule):
         return self.model(x)
 
     def training_step(self, batch, batch_idx):
-        images = batch['image'].to(self.device)
-        semantic = batch['semantic'].to(self.device)
-        depth = batch['depth'].to(self.device)
+        images = batch['image']
+        semantic = batch['semantic']
+        depth = batch['depth']
 
         output = self(images)
         losses = self.loss(output['semantic'], output['depth'], semantic, depth)
