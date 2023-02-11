@@ -81,29 +81,7 @@ def main(exp_id, command):
 
     for i in trange(10):
         data = val[i]
-
-        image = data["image"]
-        semantic = data["semantic"]
-        depth = data["depth"]
-        image_shape = data["image_shape"]
-
-        image = unpatchify(image, image_shape)
-        semantic = unpatchify(semantic, image_shape)
-        depth = unpatchify(depth, image_shape)
-
-        image = (image - image.min()) / (image.max() - image.min())
-        image = (image * 255).type(torch.uint8)
-        depth = (depth - depth.min()) / (depth.max() - depth.min())
-        depth = (depth * 255).type(torch.uint8)
-
-        overlay = make_overlay(image, semantic)
-        image = image.numpy().transpose(1, 2, 0)
-        overlay = overlay.numpy().transpose(1, 2, 0)
-        depth = depth.numpy().transpose(1, 2, 0)
-
-        imsave(os.path.join(save_path, f"{i}_image.png"), image)
-        imsave(os.path.join(save_path, f"{i}_overlay.png"), overlay)
-        imsave(os.path.join(save_path, f"{i}_depth.png"), depth)
+        save_eval_data(data, i, save_path)
 
     save_path = os.path.join(OUTPUTS_PATH, "check_dataset", "test")
     os.makedirs(save_path, exist_ok=True)
@@ -112,29 +90,31 @@ def main(exp_id, command):
 
     for i in trange(10):
         data = test[i]
+        save_eval_data(data, i, save_path)
 
-        image = data["image"]
-        semantic = data["semantic"]
-        depth = data["depth"]
-        image_shape = data["image_shape"]
 
-        image = unpatchify(image, image_shape)
-        semantic = unpatchify(semantic, image_shape)
-        depth = unpatchify(depth, image_shape)
-
-        image = (image - image.min()) / (image.max() - image.min())
-        image = (image * 255).type(torch.uint8)
-        depth = (depth - depth.min()) / (depth.max() - depth.min())
-        depth = (depth * 255).type(torch.uint8)
-
-        overlay = make_overlay(image, semantic)
-        image = image.numpy().transpose(1, 2, 0)
-        overlay = overlay.numpy().transpose(1, 2, 0)
-        depth = depth.numpy().transpose(1, 2, 0)
-
-        imsave(os.path.join(save_path, f"{i}_image.png"), image)
-        imsave(os.path.join(save_path, f"{i}_overlay.png"), overlay)
-        imsave(os.path.join(save_path, f"{i}_depth.png"), depth)
+def save_eval_data(data, i, save_path):
+    image = data["image"]
+    semantic = data["semantic"]
+    depth = data["depth"]
+    image_shape = data["image_shape"]
+    image = image.reshape(1, 1, image.shape[-2], image.shape[-1])
+    semantic = semantic.reshape(1, 1, semantic.shape[-2], semantic.shape[-1])
+    depth = depth.reshape(1, 1, depth.shape[-2], depth.shape[-1])
+    image = unpatchify(image, image_shape).squeeze(0)
+    semantic = unpatchify(semantic, image_shape).squeeze(0)
+    depth = unpatchify(depth, image_shape).squeeze(0)
+    image = (image - image.min()) / (image.max() - image.min())
+    image = (image * 255).type(torch.uint8)
+    depth = (depth - depth.min()) / (depth.max() - depth.min())
+    depth = (depth * 255).type(torch.uint8)
+    overlay = make_overlay(image, semantic)
+    image = image.numpy().transpose(1, 2, 0)
+    overlay = overlay.numpy().transpose(1, 2, 0)
+    depth = depth.numpy().transpose(1, 2, 0)
+    imsave(os.path.join(save_path, f"{i}_image.png"), image)
+    imsave(os.path.join(save_path, f"{i}_overlay.png"), overlay)
+    imsave(os.path.join(save_path, f"{i}_depth.png"), depth)
 
 
 if __name__ == "__main__":
