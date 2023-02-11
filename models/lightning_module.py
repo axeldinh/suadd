@@ -180,6 +180,9 @@ class LitModel(pl.LightningModule):
     def compute_semantic_metrics(self, prediction, target):
         metrics = {}
         for metric_name, metric in self.SEMANTIC_METRICS.items():
+            print("Metric device: ", metric.device)
+            print("Prediction device: ", prediction.device)
+            print("Target device: ", target.device)
             if metric_name == "semantic/iou":
                 ious = metric(prediction, target.long())
                 for i in CLASSES.keys():
