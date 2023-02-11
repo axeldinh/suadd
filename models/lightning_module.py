@@ -40,7 +40,6 @@ class LitModel(pl.LightningModule):
         self.val_ratio = config["val_ratio"]
         self.dataset_path = DATASET_PATH
         self.save_path = config["save_path"]
-        self.device = config["device"]
         os.makedirs(self.save_path, exist_ok=True)
 
         # Set the seed for pytorch lightning, torch, numpy python.random
