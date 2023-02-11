@@ -1,3 +1,4 @@
+import argparse
 import os
 
 import torch
@@ -5,16 +6,19 @@ from skimage.io import imsave
 from torch.utils.data import DataLoader
 from tqdm import trange
 
+from configs.experiments import load_config
 from configs.globals import DATASET_PATH, OUTPUTS_PATH
-from transforms.transforms_1 import TransformSet1
 from utils.datasets import ImageDataset
 from utils.utils_image import make_overlay, unpatchify
 
-if __name__ == "__main__":
 
-    print("Sanity check for dataset loading")
+def main(exp_id):
+    config = load_config(exp_id)
+    transform = config["transform"](**config["transform_args"])
 
-    dataset = ImageDataset(DATASET_PATH, transform=TransformSet1(patch_size=256))
+    print("Sanity check for dataset loading, using config for experiment ", exp_id)
+
+    dataset = ImageDataset(DATASET_PATH, transform=transform)
     print("Dataset loaded successfully")
 
     train, val, test = dataset.split_dataset(0.8, 0.1)
@@ -131,3 +135,10 @@ if __name__ == "__main__":
         imsave(os.path.join(save_path, f"{i}_image.png"), image)
         imsave(os.path.join(save_path, f"{i}_overlay.png"), overlay)
         imsave(os.path.join(save_path, f"{i}_depth.png"), depth)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--exp_id", type=str, required=True, help="Experiment ID")
+    args = parser.parse_args()
+    main(**vars(args))
