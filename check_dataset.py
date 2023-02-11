@@ -139,6 +139,6 @@ def main(exp_id):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp_id", type=str, required=True, help="Experiment ID")
+    parser.add_argument("--exp_id", "-t", type=str, required=True, help="Experiment ID")
     args = parser.parse_args()
     main(**vars(args))
