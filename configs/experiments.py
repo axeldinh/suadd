@@ -15,8 +15,8 @@ def load_config(config_id, command, trial_id=None):
         config["trial"] = trial_id
     config = process_config(config)
     revision_hash = get_git_revision_hash()
-    if not os.path.exists(os.path.join(config["save_path"], "git_config.txt")):
-        with open(os.path.join(config["save_path"], "git_config.txt"), "w") as f:
+    if not os.path.exists(os.path.join(config["save_path"], "git_wandb_config.txt")):
+        with open(os.path.join(config["save_path"], "git_wandb_config.txt"), "w") as f:
             f.write("To reproduce this experiment, run:\n")
             f.write("\t" + command + "\n")
             f.write("\tgit checkout -b " + config["name"] + " " + revision_hash + "\n")
@@ -56,7 +56,7 @@ def process_config(config):
 
     # If a trial number is specified, use the same wandb id
     if config["resumed"]:
-        with open(os.path.join(config["save_path"], "git_config.txt"), "r") as f:
+        with open(os.path.join(config["save_path"], "git_wandb_config.txt"), "r") as f:
             lines = f.readlines()
             for line in lines:
                 if "WandB Id" in line:
