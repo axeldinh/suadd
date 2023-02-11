@@ -95,6 +95,8 @@ class LitModel(pl.LightningModule):
             semantic = batch['semantic'][i].to(self.device)
             depth = batch['depth'][i].squeeze(1).to(self.device)
 
+            print(self.model.device, patches.device)
+
             ##############################
             # Get the predictions for each image
             ##############################
