@@ -1,4 +1,7 @@
 import torch
+from torchmetrics import JaccardIndex, Dice
+
+from configs.globals import CLASSES
 
 
 def si_log(prediction, target):
@@ -31,3 +34,20 @@ def sq_rel(prediction, target):
 def abs_rel(prediction, target):
     mask = ~torch.isnan(target)
     return torch.mean(torch.abs(target[mask] - prediction[mask]) / target[mask])
+
+
+def compute_depth_metrics(prediction, target):
+    """
+    Compute the depth metrics
+    :param prediction: predicted depth
+    :param target: ground truth depth
+    :return: dictionary with the metrics
+    """
+    metrics = {
+        "abs_rel": abs_rel(prediction, target),
+        "sq_rel": sq_rel(prediction, target),
+        "rmse": rsme(prediction, target),
+        "si_log": si_log(prediction, target),
+        "mae": mae(prediction, target)
+    }
+    return metrics
