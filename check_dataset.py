@@ -139,7 +139,7 @@ def main(exp_id, command):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp_id", "-t", type=int, required=True, help="Experiment ID")
+    parser.add_argument("--exp_id", "-e", type=int, required=True, help="Experiment ID")
     args = parser.parse_args()
 
     # Recover the complete command entered by the user
