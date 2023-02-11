@@ -2,6 +2,8 @@ import torch
 
 
 def si_log(prediction, target):
+    # Make sure predictions are higher than 0
+    prediction = torch.clamp(prediction, min=1e-6)
     mask = ~torch.isnan(target)
     d = torch.log(prediction[mask]) - torch.log(target[mask])
     n = torch.numel(mask)
