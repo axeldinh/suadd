@@ -74,7 +74,8 @@ class ImageDataset(Dataset):
             "image": image,
             "semantic": semantic_annotation,
             "depth": depth_annotation,
-            "image_shape": [image_shape]
+            "image_shape": [image_shape],
+            "image_name": img_name.replace(".png", ""),
         }
 
         return output
@@ -184,12 +185,7 @@ def fetch_data_from_wandb():
     Get the dataset from the last wandb artifact.
     :return: The path to the dataset.
     """
-    run = wandb.init(
-        project=wandb_config.WANDB_PROJECT,
-        entity=wandb_config.ENTITY,
-        name="download_data",
-        job_type="download-data"
-    )
-    artifact = run.use_artifact(wandb_config.DATA_NAME + ":latest", type="dataset-suadd")
-    artifact_dir = artifact.download()
+
+    artifact = wandb.use_artifact(wandb_config.DATA_NAME + ":latest", type="dataset-suadd")
+    artifact_dir = artifact.download(root=configs.globals.DATASET_PATH)
     return artifact_dir
