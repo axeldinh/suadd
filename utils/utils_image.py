@@ -97,8 +97,8 @@ def unpatchify(patches, image_shape):
     if image_width % patch_size != 0:
         num_patches_width += 1
 
-    image = torch.zeros(num_channels, image_height, image_width)
-    mask = torch.zeros(num_channels, image_height, image_width)
+    image = torch.zeros(num_channels, image_height, image_width).to(patches.device)
+    mask = torch.zeros(num_channels, image_height, image_width).to(patches.device)
     for i in range(num_patches_height * num_patches_width):
         x = i % num_patches_width
         y = i // num_patches_width
