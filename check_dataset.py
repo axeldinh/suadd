@@ -5,7 +5,7 @@ from skimage.io import imsave
 from torch.utils.data import DataLoader
 from tqdm import trange
 
-from configs.globals import DATASET_PATH, outputs_path
+from configs.globals import DATASET_PATH, OUTPUTS_PATH
 from transforms.transforms_1 import TransformSet1
 from utils.datasets import ImageDataset
 from utils.utils_image import make_overlay, unpatchify
@@ -43,7 +43,7 @@ if __name__ == "__main__":
         print("Error in making test dataloader:", e)
     print("Dataloaders created successfully")
 
-    save_path = os.path.join(outputs_path, "check_dataset", "train")
+    save_path = os.path.join(OUTPUTS_PATH, "check_dataset", "train")
     os.makedirs(save_path, exist_ok=True)
 
     print(f"\nSaving train images and overlays to {save_path}\n")
@@ -70,7 +70,7 @@ if __name__ == "__main__":
         imsave(os.path.join(save_path, f"{i}_overlay.png"), overlay)
         imsave(os.path.join(save_path, f"{i}_depth.png"), depth)
 
-    save_path = os.path.join(outputs_path, "check_dataset", "val")
+    save_path = os.path.join(OUTPUTS_PATH, "check_dataset", "val")
     os.makedirs(save_path, exist_ok=True)
 
     print(f"\nSaving validation images and overlays to {save_path}\n")
@@ -101,7 +101,7 @@ if __name__ == "__main__":
         imsave(os.path.join(save_path, f"{i}_overlay.png"), overlay)
         imsave(os.path.join(save_path, f"{i}_depth.png"), depth)
 
-    save_path = os.path.join(outputs_path, "check_dataset", "test")
+    save_path = os.path.join(OUTPUTS_PATH, "check_dataset", "test")
     os.makedirs(save_path, exist_ok=True)
 
     print(f"\nSaving testing images and overlays to {save_path}\n")
