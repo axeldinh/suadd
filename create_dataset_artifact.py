@@ -18,7 +18,9 @@ def create_table(dataset):
 
     for i in trange(len(dataset)):
         img_name = images_paths[i]
-        img, sem, dep = dataset[i]
+        img = dataset[i]['image']
+        sem = dataset[i]['semantic']
+        dep = dataset[i]['depth']
         class_id_in_img = torch.unique(sem)
         class_in_img = [configs.globals.CLASSES[c.item()] for c in class_id_in_img]
 
