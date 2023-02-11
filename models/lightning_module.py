@@ -53,9 +53,9 @@ class LitModel(pl.LightningModule):
         # Metrics for semantic segmentation and depth estimation
         self.SEMANTIC_METRICS = {
             'semantic/iou': JaccardIndex(task='multiclass', num_classes=len(CLASSES), average=None,
-                                         ignore_index=len(CLASSES) - 1).to(self.device),
+                                         ignore_index=len(CLASSES) - 1).to(config["device"]),
             'semantic/dice': Dice(num_classes=len(CLASSES), average='macro',
-                                  ignore_index=len(CLASSES) - 1).to(self.device),
+                                  ignore_index=len(CLASSES) - 1).to(config["device"]),
         }
 
         self.save_hyperparameters()
@@ -180,9 +180,10 @@ class LitModel(pl.LightningModule):
     def compute_semantic_metrics(self, prediction, target):
         metrics = {}
         for metric_name, metric in self.SEMANTIC_METRICS.items():
-            print("Metric device: ", metric.device)
-            print("Prediction device: ", prediction.device)
-            print("Target device: ", target.device)
+            print("Metric name: ", metric_name)
+            print("\tMetric device: ", metric.device)
+            print("\tPrediction device: ", prediction.device)
+            print("\tTarget device: ", target.device)
             if metric_name == "semantic/iou":
                 ious = metric(prediction, target.long())
                 for i in CLASSES.keys():
@@ -200,6 +201,8 @@ class LitModel(pl.LightningModule):
         :param semantic: semantic target
         :return:
         """
+        print("Prediction device: ", prediction.device)
+        print("Target device: ", target.device)
         metrics = {}
         zeros_classes = []
         for class_ in CLASSES.keys():
