@@ -52,7 +52,7 @@ class UNet(nn.Module):
                           int) and first_layer_channels > 0, f"first_layer_channels={first_layer_channels}" \
                                                              f" must be a positive integer"
         assert isinstance(num_classes, int) and num_classes > 0, f"number_classes={num_classes} should be " \
-                                                                       f"a positive integer"
+                                                                 f"a positive integer"
 
         self.channels_in = channels_in
         self.first_layer_channels = first_layer_channels
@@ -102,9 +102,6 @@ class UNet(nn.Module):
         depth = None
         if self.return_depth:
             depth = x[:, -1, :, :].unsqueeze(1)
-            # Depth should be positive
-            depth = torch.relu(depth)
-
 
         output = {
             "semantic": semantic,
