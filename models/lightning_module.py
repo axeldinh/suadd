@@ -51,6 +51,9 @@ class LitModel(pl.LightningModule):
         # Load the datasets
         self.get_dataset()
 
+        self.example_input_array = torch.rand(1, 1, config["transform_args"]["patch_size"],
+                                              config["transform_args"]["patch_size"])
+
         # Metrics for semantic segmentation and depth estimation
         self.SEMANTIC_METRICS = {
             'semantic/iou': JaccardIndex(task='multiclass', num_classes=len(CLASSES), average=None,
@@ -272,17 +275,21 @@ class LitModel(pl.LightningModule):
         imsave(os.path.join(save_path, f'{image_name}_overlay.png'), overlay.numpy().transpose(1, 2, 0))
 
         # Save the prediction overlay on wandb
-        wandb_image = wandb.Image(image.float(), masks={
-            "predictions": {
-                "mask_data": semantic_pred[0].to(torch.uint8).numpy(),
-                "class_labels": CLASSES
-            },
-            "ground truth": {
-                "mask_data": semantic_target[0].to(torch.uint8).numpy(),
-                "class_labels": CLASSES
-            }
-        })
-        wandb.log({f"test/semantic_overlays/{image_name}": wandb_image})
+        if self.config["use_wandb"]:
+            wandb_image = wandb.Image(image.float(), masks={
+                "predictions": {
+                    "mask_data": semantic_pred[0].to(torch.uint8).numpy(),
+                    "class_labels": CLASSES
+                },
+                "ground truth": {
+                    "mask_data": semantic_target[0].to(torch.uint8).numpy(),
+                    "class_labels": CLASSES
+                }
+            })
+            wandb.log({f"test/semantic_overlays/{image_name}": wandb_image})
+        else:
+            # Save the overlay to tensorboard
+            self.logger.experiment.add_image(f"test/semantic_overlays/{image_name}", overlay, self.current_epoch)
 
         if depth_out is not None:
             mask = ~torch.isnan(depth_target)
@@ -293,9 +300,19 @@ class LitModel(pl.LightningModule):
             # Save the depth error locally
             imsave(os.path.join(save_path, f'{image_name}_depth_error.png'), depth_error.numpy(), check_contrast=False)
             # Save the depth error on wandb
-            wandb.log({f"test/depth_error_images/{image_name}": wandb.Image(depth_error.float())})
+            if self.config["use_wandb"]:
+                wandb.log({f"test/depth_error_images/{image_name}": wandb.Image(depth_error.float())})
+            else:
+                # Save the depth error to tensorboard
+                self.logger.experiment.add_image(f"test/depth_error_images/{image_name}", depth_error.unsqueeze(0),
+                                                 self.current_epoch)
             depth_uint8 = torch.clamp(depth_out, 0, 255).to(torch.uint8)
             # Save the depth prediction locally
             imsave(os.path.join(save_path, f'{image_name}_depth.png'), depth_uint8.numpy(), check_contrast=False)
             # Save the depth prediction on wandb
-            wandb.log({f"test/depth_images/{image_name}": wandb.Image(depth_uint8.float())})
+            if self.config["use_wandb"]:
+                wandb.log({f"test/depth_images/{image_name}": wandb.Image(depth_uint8.float())})
+            else:
+                # Save the depth prediction to tensorboard
+                self.logger.experiment.add_image(f"test/depth_images/{image_name}", depth_uint8.unsqueeze(0),
+                                                 self.current_epoch)
