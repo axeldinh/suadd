@@ -13,9 +13,12 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, message="Checkpoint directory")
 warnings.filterwarnings("ignore", category=UserWarning, message="The dataloader,")
 
-def main(exp_id, trial_id, no_wandb, command):
+def main(exp_id, trial_id, epochs, no_wandb, command):
 
     config = load_config(exp_id, command, trial_id)
+
+    if epochs > 0:
+        config["epochs"] = epochs
 
     if no_wandb:
         config["use_wandb"] = False
@@ -74,6 +77,7 @@ if __name__ == "__main__":
     parser.add_argument("--exp_id", "-e", type=int, default=0, help="Experiment index")
     parser.add_argument("--trial_id", "-t", type=int, help="Trial index")
     parser.add_argument("--no_wandb", "-w", action="store_true", help="Use wandb")
+    parser.add_argument("--epochs", "-ep", type=int, help="Number of epochs", default=-1)
 
     args = parser.parse_args()
 
