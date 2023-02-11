@@ -3,13 +3,14 @@ import os
 import pytorch_lightning as pl
 import torch
 import wandb
+from skimage.io import imsave
 from torch.utils.data import DataLoader
 from torchmetrics import JaccardIndex, Dice
 
 from configs.globals import DATASET_PATH, CLASSES
 from utils.datasets import ImageDataset, fetch_data_from_wandb
 from utils.metrics import compute_depth_metrics
-from utils.utils_image import unpatchify
+from utils.utils_image import unpatchify, make_overlay
 
 
 # TODO: Remove the unpatchify function from here, should be handled by the transform
@@ -180,10 +181,6 @@ class LitModel(pl.LightningModule):
     def compute_semantic_metrics(self, prediction, target):
         metrics = {}
         for metric_name, metric in self.SEMANTIC_METRICS.items():
-            print("Metric name: ", metric_name)
-            print("\tMetric device: ", metric.device)
-            print("\tPrediction device: ", prediction.device)
-            print("\tTarget device: ", target.device)
             if metric_name == "semantic/iou":
                 ious = metric(prediction, target.long())
                 for i in CLASSES.keys():
@@ -201,8 +198,6 @@ class LitModel(pl.LightningModule):
         :param semantic: semantic target
         :return:
         """
-        print("Prediction device: ", prediction.device)
-        print("Target device: ", target.device)
         metrics = {}
         zeros_classes = []
         for class_ in CLASSES.keys():
@@ -262,8 +257,12 @@ class LitModel(pl.LightningModule):
         :return: None
         """
 
-        from utils.utils_image import make_overlay
-        from skimage.io import imsave
+        # Everything to cpu
+        image = image.cpu()
+        semantic_target = semantic_target.cpu()
+        depth_target = depth_target.cpu()
+        semantic_pred = semantic_pred.cpu()
+        depth_out = depth_out.cpu()
 
         image = (image - image.min()) / (image.max() - image.min())
         image = (image * 255).to(torch.uint8)
