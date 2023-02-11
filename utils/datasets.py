@@ -135,14 +135,14 @@ class ImageDataset(Dataset):
 
         self.mean = sum_pixels / num_elements
 
-        std = 0.0
+        std = torch.tensor(0.0)
         for i in range(len(self.images_paths)):
             img_name = self.images_paths[i]
             image_path = os.path.join(self.images_folder, img_name)
             image = read_image(image_path).float()
             std += ((image - self.mean) ** 2).sum()
 
-        self.std = torch.sqrt(torch.tensor(std / (num_elements - 1)))
+        self.std = torch.sqrt(std / (num_elements - 1))
 
     def split_dataset(self, train_ratio: float, val_ratio: float) -> tuple[Subset[Any], Subset[Any], Subset[Any]]:
         """
