@@ -28,8 +28,8 @@ config_1 = {
     ##############################
     "model_args": {
         "channels_in": 1,
-        "first_layer_channels": 1,
-        "depth": 2,
+        "first_layer_channels": 64,
+        "depth": 4,
         "num_classes": len(CLASSES),
         "return_depth": True
     },
@@ -40,7 +40,7 @@ config_1 = {
     ##############################
 
     "transform_args": {
-        "patch_size": 128,
+        "patch_size": 512,
     },
     "transform": TransformSet1,
 
@@ -52,13 +52,13 @@ config_1 = {
     "optimizer": torch.optim.Adam,
     "scheduler": None,
     "lr": 3e-4,
-    "epochs": 10,
+    "epochs": 100,
     "device": "cuda" if torch.cuda.is_available() else "cpu",
 
     ##############################
     # Wandb configuration
     ##############################
-    "use_wandb": False,
+    "use_wandb": True,
     "monitor": "validation/loss",
     "monitor_mode": "min",
     "log_every_n_steps": 1,
