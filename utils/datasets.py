@@ -59,6 +59,9 @@ class ImageDataset(Dataset):
         semantic_annotation = read_image(semantic_annotation_path).float()
         semantic_annotation[semantic_annotation == 255] = len(configs.globals.CLASSES) - 1
         depth_annotation = imread(depth_annotation_path).astype(np.float32)
+        mask = depth_annotation == 0
+        depth_annotation = (depth_annotation - 1.) / 128.
+        depth_annotation[mask] = 0
         depth_annotation = torch.from_numpy(depth_annotation).unsqueeze(0)
 
         image_shape = image.shape
@@ -71,7 +74,7 @@ class ImageDataset(Dataset):
             "image": image,
             "semantic": semantic_annotation,
             "depth": depth_annotation,
-            "image_shape": image_shape
+            "image_shape": [image_shape]
         }
 
         return output
