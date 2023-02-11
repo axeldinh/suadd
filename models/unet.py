@@ -102,6 +102,9 @@ class UNet(nn.Module):
         depth = None
         if self.return_depth:
             depth = x[:, -1, :, :].unsqueeze(1)
+            # Depth should be positive
+            depth = torch.relu(depth)
+
 
         output = {
             "semantic": semantic,
