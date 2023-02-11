@@ -2,14 +2,15 @@ import os
 
 import pytorch_lightning as pl
 import torch
+import wandb
 from torch.utils.data import DataLoader
 from torchmetrics import JaccardIndex, Dice
 
-import wandb
 from configs.globals import DATASET_PATH, CLASSES
 from utils.datasets import ImageDataset, fetch_data_from_wandb
 from utils.metrics import compute_depth_metrics
 from utils.utils_image import unpatchify
+
 
 # TODO: Remove the unpatchify function from here, should be handled by the transform
 # TODO: Create notebook to run on colab
@@ -27,7 +28,7 @@ class LitModel(pl.LightningModule):
 
         self.config = config
 
-        self.model = config["model"](**config["model_args"])
+        self.model = config["model"](**config["model_args"]).to(self.device)
         self.loss = config["loss"]
         self.optimizer = config["optimizer"]
         self.scheduler = config["scheduler"]
@@ -52,8 +53,9 @@ class LitModel(pl.LightningModule):
         # Metrics for semantic segmentation and depth estimation
         self.SEMANTIC_METRICS = {
             'semantic/iou': JaccardIndex(task='multiclass', num_classes=len(CLASSES), average=None,
-                                         ignore_index=len(CLASSES) - 1),
-            'semantic/dice': Dice(num_classes=len(CLASSES), average='macro', ignore_index=len(CLASSES) - 1),
+                                         ignore_index=len(CLASSES) - 1).to(self.device),
+            'semantic/dice': Dice(num_classes=len(CLASSES), average='macro',
+                                  ignore_index=len(CLASSES) - 1).to(self.device),
         }
 
         self.save_hyperparameters()
@@ -66,7 +68,6 @@ class LitModel(pl.LightningModule):
         semantic = batch['semantic'].to(self.device)
         depth = batch['depth'].to(self.device)
 
-        print(self.model.device, images.device, self.device)
         output = self(images)
         losses = self.loss(output['semantic'], output['depth'], semantic, depth)
         self.log('train/loss', losses['loss'])
@@ -96,8 +97,6 @@ class LitModel(pl.LightningModule):
             patches = batch['image'][i].to(self.device)
             semantic = batch['semantic'][i].to(self.device)
             depth = batch['depth'][i].squeeze(1).to(self.device)
-
-            print(self.model.device, patches.device)
 
             ##############################
             # Get the predictions for each image
