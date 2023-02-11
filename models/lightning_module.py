@@ -40,6 +40,7 @@ class LitModel(pl.LightningModule):
         self.val_ratio = config["val_ratio"]
         self.dataset_path = DATASET_PATH
         self.save_path = config["save_path"]
+        self.device = config["device"]
         os.makedirs(self.save_path, exist_ok=True)
 
         # Set the seed for pytorch lightning, torch, numpy python.random
@@ -62,9 +63,9 @@ class LitModel(pl.LightningModule):
         return self.model(x)
 
     def training_step(self, batch, batch_idx):
-        images = batch['image']
-        semantic = batch['semantic']
-        depth = batch['depth']
+        images = batch['image'].to(self.device)
+        semantic = batch['semantic'].to(self.device)
+        depth = batch['depth'].to(self.device)
         output = self(images)
         losses = self.loss(output['semantic'], output['depth'], semantic, depth)
         self.log('train/loss', losses['loss'])
@@ -91,9 +92,9 @@ class LitModel(pl.LightningModule):
         for i in range(batch['image'].shape[0]):
 
             image_shape = batch['image_shape'][i]
-            patches = batch['image'][i]
-            semantic = batch['semantic'][i]
-            depth = batch['depth'][i].squeeze(1)
+            patches = batch['image'][i].to(self.device)
+            semantic = batch['semantic'][i].to(self.device)
+            depth = batch['depth'][i].squeeze(1).to(self.device)
 
             ##############################
             # Get the predictions for each image
