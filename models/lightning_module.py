@@ -28,8 +28,6 @@ class LitModel(pl.LightningModule):
 
         self.config = config
 
-        print(self.device)
-
         self.model = config["model"](**config["model_args"]).to(self.device)
         self.loss = config["loss"]
         self.optimizer = config["optimizer"]
@@ -229,8 +227,8 @@ class LitModel(pl.LightningModule):
         return optimizer
 
     def get_dataset(self):
-        # if not os.path.exists(self.dataset_path):
-        self.dataset_path = fetch_data_from_wandb()
+        if not os.path.exists(self.dataset_path) or self.config["use_wandb"]:
+            self.dataset_path = fetch_data_from_wandb()
         dataset = ImageDataset(self.dataset_path, transform=self.transform)
         self.train_set, self.val_set, self.test_set = dataset.split_dataset(self.train_ratio, self.val_ratio)
 

@@ -58,6 +58,7 @@ config_1 = {
     ##############################
     # Wandb configuration
     ##############################
+    "use_wandb": False,
     "monitor": "validation/loss",
     "monitor_mode": "min",
     "log_every_n_steps": 1,
