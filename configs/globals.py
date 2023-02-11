@@ -11,7 +11,8 @@ elif os.getcwd().split(os.path.sep)[1] == "home":
     DATASET_PATH = "/home/dinhvan/master_project/dataset_axel/datasets/3d/CHUV/dataset_snapshot"
 # For Google Colab
 elif os.getcwd().split(os.path.sep)[1] == "content":
-    DATASET_PATH = "/content/drive/MyDrive/Master Project/dataset_axel/datasets/3d/CHUV/dataset_snapshot/"
+    DATASET_PATH = "/content/drive/MyDrive/AIcrowd/suadd/suadd/datasets"
+    OUTPUTS_PATH = "/content/drive/MyDrive/AIcrowd/suadd/suadd/outputs"
 else:
     raise ValueError("Unknown directory structure")
 
