@@ -62,7 +62,7 @@ def main(exp_id, trial_id, epochs, no_wandb, command):
         log_every_n_steps=config["log_every_n_steps"],
         val_check_interval=config["val_check_interval"],
         auto_lr_find=True,
-        auto_scale_batch_size="binsearch",
+        auto_scale_batch_size='power',
         num_sanity_val_steps=0,
     )
 
