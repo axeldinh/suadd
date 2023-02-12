@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.loggers import WandbLogger, TensorBoardLogger
 
 from configs.experiments import load_config
@@ -14,7 +15,7 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, message="Checkpoint directory")
 warnings.filterwarnings("ignore", category=UserWarning, message="The dataloader,")
 
-def main(exp_id, trial_id, epochs, no_wandb, profile, tune_batch_size, tune_lr, command):
+def main(exp_id, trial_id, epochs, no_wandb, profile, tune_batch_size, tune_lr, early_stop, command):
 
     config = load_config(exp_id, command, trial_id)
 
@@ -53,6 +54,14 @@ def main(exp_id, trial_id, epochs, no_wandb, profile, tune_batch_size, tune_lr, 
             mode=config["monitor_mode"],
         )]
 
+    if early_stop:
+        callbacks.append(EarlyStopping(
+            monitor=config["monitor"],
+            mode=config["monitor_mode"],
+            patience=10,
+            verbose=True,
+        ))
+
     checkpoint = os.path.join(config["save_path"], "checkpoints", "best_model.ckpt")
 
     trainer = pl.Trainer(
@@ -87,10 +96,8 @@ if __name__ == "__main__":
     parser.add_argument("--profile", "-p", action="store_true", help="Profile the code")
     parser.add_argument("-tune_batch_size", "-tb", action="store_true", help="Tune batch size")
     parser.add_argument("-tune_lr", "-tl", action="store_true", help="Tune learning rate")
+    parser.add_argument("-early_stop", "-es", action="store_true", help="Use early stopping")
 
     args = parser.parse_args()
 
-    # Recover the complete command entered by the user
-    command = "python " + " ".join(sys.argv)
-
-    main(**vars(args), command=command)
+    main(**vars(args), command="python " + " ".join(sys.argv))
