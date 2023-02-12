@@ -39,7 +39,7 @@ def main(exp_id, trial_id, epochs, no_wandb, profile, tune_batch_size, tune_lr, 
         logger = TensorBoardLogger(
             save_dir=config["save_path"],
             name="tensorboard",
-            log_graph=True,
+            log_graph=False,
         )
 
     model = LitModel(config)
