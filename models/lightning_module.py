@@ -106,17 +106,22 @@ class LitModel(pl.LightningModule):
             ##############################
 
             semantic_out, depth_out = self(patches)
-            semantic_out = unpatchify(semantic_out, image_shape).unsqueeze(0)
+            semantic_out = self.transform.eval_untransform(semantic_out, image_shape)
             if depth_out is not None:
-                depth_out = unpatchify(depth_out, image_shape).squeeze(1)
-            else:
-                depth_out = None
+                depth_out = self.transform.eval_untransform(depth_out, image_shape)
 
             ##############################
             # Compute the metrics
             ##############################
 
+            # Make sure everything has the proper shape
+            semantic = semantic.view(1, semantic.shape[-2], semantic.shape[-1])
+            depth = depth.view(depth.shape[-2], depth.shape[-1])
+            semantic_out = semantic_out.view(1, len(CLASSES.keys()), semantic_out.shape[-2], semantic_out.shape[-1])
+            if depth_out is not None:
+                depth_out = depth_out.view(depth_out.shape[-2], depth_out.shape[-1])
             semantic_pred = torch.argmax(semantic_out, dim=1)
+
             depth[depth == 0] = torch.nan
             losses_img = self.loss(semantic_out, depth_out, semantic, depth)
             semantic_metrics = self.compute_semantic_metrics(semantic_pred, semantic)
@@ -142,10 +147,11 @@ class LitModel(pl.LightningModule):
             #########################################################
 
             if mode == 'test':
-                image = unpatchify(patches, image_shape)
+                image = self.transform.eval_untransform(patches, image_shape)
+                image.view(1, image.shape[-2], image.shape[-1])
                 save_path = os.path.join(self.save_path, 'test')
                 os.makedirs(save_path, exist_ok=True)
-                self.save_predictions_images(image, semantic, depth.squeeze(0), semantic_pred, depth_out.squeeze(0),
+                self.save_predictions_images(image, semantic, depth, semantic_pred, depth_out,
                                              image_name=batch['image_name'][i], save_path=save_path)
 
         ##############################

@@ -76,33 +76,28 @@ class TransformSet1:
         return image, semantic, depth
 
     @staticmethod
-    def eval_untransform(image, semantic, depth, original_shape):
+    def eval_untransform(image, original_shape):
         """
         Inverse transforms the image to its original size, for evaluation images.
-        :param image: torch gray images (1, height, width) or several patches (1, patch_size, patch_size)
-        :param semantic: torch gray images (1, height, width) or several patches (1, patch_size, patch_size)
-        :param depth: torch gray images (1, height, width) or several patches (1, patch_size, patch_size)
+        :param image: torch gray images (num_patches, C, patch_size, patch_size)
         :param original_shape: original shape of the image
-        :return: untransformed torch gray images (1, height, width)
+        :return: untransformed torch gray images (C, height, width)
         """
 
         dims = len(image.shape)
         if dims == 3:
             num_patches = image.shape[0]
-            patch_size = image.shape[1]
+            patch_size = image.shape[-1]
+            num_channels = 1
         elif dims == 4:
-            if image.shape[1] != 1:
-                raise Exception(
-                    "Image must be gray. It should have shape (num_patches, 1, patch_size, patch_size)")
-            num_patches = image.shape[1]
-            patch_size = image.shape[2]
+            num_patches = image.shape[0]
+            patch_size = image.shape[-1]
+            num_channels = image.shape[1]
         else:
             raise Exception("Image must have 3 or 4 dimensions.")
 
-        image = image.view(num_patches, 1, patch_size, patch_size)
+        image = image.view(num_patches, num_channels, patch_size, patch_size)
 
         image = unpatchify(image, original_shape)
 
-        image = image.reshape(semantic.shape)
-
-        return image, semantic, depth
+        return image
