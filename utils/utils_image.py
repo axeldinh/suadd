@@ -4,7 +4,7 @@ from torchvision.utils import draw_segmentation_masks
 from configs.globals import PALETTE
 
 
-def make_overlay(image, annotation):
+def make_overlay(image, annotation, alpha=0.5):
     """
     Make an overlay of the image and the annotation
     :param image: torch gray images (1, height, width)
@@ -20,7 +20,7 @@ def make_overlay(image, annotation):
     masks = masks.repeat(classes.shape[0], 1, 1)
     for j, cls in enumerate(classes):
         masks[j][annotation[0] == cls] = True
-    overlay = draw_segmentation_masks(image.repeat(3, 1, 1), masks, alpha=0.5, colors=palette)
+    overlay = draw_segmentation_masks(image.repeat(3, 1, 1), masks, alpha=alpha, colors=palette)
     return overlay
 
 
