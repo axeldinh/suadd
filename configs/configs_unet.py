@@ -7,7 +7,7 @@ from losses.cross_entropy_mse import CrossEntropyMSE
 from models.unet import UNet
 from transforms.transforms_1 import TransformSet1
 
-config_1 = {
+unet_no_depth = {
     ##############################
     # Experiment configuration
     ##############################
@@ -33,7 +33,7 @@ config_1 = {
         "first_layer_channels": 64,
         "depth": 4,
         "num_classes": len(CLASSES),
-        "return_depth": True
+        "return_depth": False
     },
     "model": UNet,
 
@@ -68,5 +68,5 @@ config_1 = {
 }
 
 configs = {
-    1: config_1,
+    1: unet_no_depth,
 }
