@@ -59,7 +59,7 @@ def main(exp_id, trial_id, epochs, no_wandb, profile, tune_batch_size, tune_lr, 
             monitor=config["monitor"],
             mode=config["monitor_mode"],
             patience=10,
-            verbose=True,
+            verbose=False,
         ))
 
     checkpoint = os.path.join(config["save_path"], "checkpoints", "best_model.ckpt")
