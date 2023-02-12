@@ -206,3 +206,24 @@ In case of issues, check that WandB contains the run with the specified ID.
 - [x] Prepare a training script for Google Colab
 - [ ] Start training
 - [ ] allow th framework to work only on depth estimation
+
+
+The semantics are shown on overlays using those colors:
+
+- <span style="color:rgb(148, 218, 255)">Water</span>.
+- <span style="color:rgb(85, 85, 85)">Asphalt</span>.
+- <span style="color:rgb(200, 219, 190)">Grass</span>.
+- <span style="color:rgb(166, 133, 226)">Human</span>.
+- <span style="color:rgb(255, 171, 225)">Animal</span>.
+- <span style="color:rgb(40, 150, 114)">Vegetation</span>.
+- <span style="color:rgb(234, 144, 133)">Vehicle</span>.
+- <span style="color:rgb(89, 82, 96)">Facade</span>.
+- <span style="color:rgb(255, 255, 0)">Wire</span>.
+- <span style="color:rgb(110, 87, 121)">Furniture</span>.
+- <span style="color:rgb(205, 201, 195)">Concrete</span>.
+- <span style="color:rgb(212, 80, 121)">Roof</span>.
+- <span style="color:rgb(159, 135, 114)">Gravel</span>.
+- <span style="color:rgb(102, 90, 72)">Soil</span>.
+- <span style="color:rgb(255, 255, 102)">Primeair Pattern</span>.
+- <span style="color:rgb(251, 247, 240)">Snow</span>.
+- <span style="color:rgb(0, 0, 0)">Unknown</span>.
