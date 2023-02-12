@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import pytorch_lightning as pl
 import torch
 import wandb
@@ -186,6 +187,31 @@ class LitModel(pl.LightningModule):
             # Log the metrics, adding '/' to  get different groups in wandb
             self.log(f'{mode}/{metric.replace("semantic_", "semantic/").replace("depth_", "depth/")}',
                      all_metrics[metric])
+
+        # If test add 5 examples of training predictions
+        if mode == 'test':
+
+            for _ in range(10):
+
+                # Get a random image
+                idx = np.random.randint(0, len(self.train_set))
+                data = self.train_set[idx]
+                image = data['image']
+                semantic = data['semantic']
+                depth = data['depth']
+                image_name = data['image_name']
+
+                # Get the predictions
+                semantic_out, depth_out = self(image.unsqueeze(0))
+                semantic_pred = torch.argmax(semantic_out, dim=1)
+                if depth_out is not None:
+                    depth_out = depth_out.view(depth_out.shape[-2], depth_out.shape[-1])
+
+                # Save the predictions
+                save_path = os.path.join(self.save_path, 'train_best_model')
+                os.makedirs(save_path, exist_ok=True)
+                self.save_predictions_images(image, semantic, depth, semantic_pred, depth_out,
+                                             image_name=image_name, save_path=save_path)
 
     def compute_semantic_metrics(self, prediction, target):
         metrics = {}
