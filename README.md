@@ -205,3 +205,4 @@ In case of issues, check that WandB contains the run with the specified ID.
 - [x] Do not forget to keep track of commit hashes for reproducibility
 - [x] Prepare a training script for Google Colab
 - [ ] Start training
+- [ ] allow th framework to work only on depth estimation
