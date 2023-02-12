@@ -31,7 +31,7 @@ unet_no_depth = {
     "model_args": {
         "channels_in": 1,
         "first_layer_channels": 64,
-        "depth": 4,
+        "depth": 5,
         "num_classes": len(CLASSES),
         "return_depth": False
     },
