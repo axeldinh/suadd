@@ -164,7 +164,7 @@ In case of issues, check that WandB contains the run with the specified ID.
 
 # Steps
 
-- [ ] Prepare the environment
+- [x] Prepare the environment
 - [ ] Test a U-Net model
 - [ ] Reproduce ``Fully Convolutional Networks for Semantic Segmentation`` ([ArXiv](https://arxiv.org/abs/1411.4038)).
 - [ ] Test Transformer-Based Models
@@ -203,5 +203,5 @@ In case of issues, check that WandB contains the run with the specified ID.
 - [x] Prepare PyTorch Lightning model (use debug mode)
 - [x] Prepare WandB logging (use debug mode)
 - [x] Do not forget to keep track of commit hashes for reproducibility
-- [ ] Prepare a training script for Google Colab
+- [x] Prepare a training script for Google Colab
 - [ ] Start training

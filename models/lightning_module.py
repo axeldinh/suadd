@@ -10,10 +10,7 @@ from torchmetrics import JaccardIndex, Dice
 from configs.globals import DATASET_PATH, CLASSES
 from utils.datasets import ImageDataset, fetch_data_from_wandb
 from utils.metrics import compute_depth_metrics
-from utils.utils_image import unpatchify, make_overlay
-
-
-# TODO: Remove the unpatchify function from here, should be handled by the transform
+from utils.utils_image import make_overlay
 
 
 class LitModel(pl.LightningModule):
