@@ -117,6 +117,7 @@ class ImageDataset(Dataset):
         num_elements = 0
 
         self.classes_count = {}
+        self.classes_ratio = {}
 
         for i in tqdm(self.train_idx, leave=None):
             if self.store_images:
@@ -135,6 +136,9 @@ class ImageDataset(Dataset):
                 if class_ not in self.classes_count:
                     self.classes_count[class_] = 0
                 self.classes_count[class_] += (semantic == class_).float().sum().item()
+
+        for class_ in self.classes_count.keys():
+            self.classes_ratio[class_] = self.classes_count[class_] / num_elements
 
 
         self.mean = sum_pixels / num_elements
