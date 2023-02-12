@@ -51,6 +51,7 @@ unet_no_depth = {
     ##############################
 
     "loss": CrossEntropyMSE(),
+    "weighted_loss": True,
     "optimizer": torch.optim.Adam,
     "scheduler": None,
     "lr": 3e-4,

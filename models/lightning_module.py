@@ -47,6 +47,11 @@ class LitModel(pl.LightningModule):
         # Load the datasets
         self.get_dataset()
 
+        # Update the weights of the loss function
+        if config["weighted_loss"]:
+            self.loss.set_weight(self.train_set.dataset.get_weights())
+
+
         self.example_input_array = torch.rand(1, 1, config["transform_args"]["patch_size"],
                                               config["transform_args"]["patch_size"])
 

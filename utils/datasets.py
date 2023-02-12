@@ -155,6 +155,20 @@ class ImageDataset(Dataset):
 
         self.std = torch.sqrt(std / (num_elements - 1))
 
+    def get_weights(self):
+        """
+        Get the weights for each class
+        :return: the weights for each class
+        """
+        weights = torch.zeros(len(configs.globals.CLASSES))
+        for class_ in configs.globals.CLASSES.keys():
+            if self.classes_ratio[class_] == 0:
+                weights[class_] = 0
+            else:
+                weights[class_] = 1 / self.classes_ratio[class_]
+        weights /= weights.sum()
+        return weights
+
     def split_dataset(self, train_ratio: float, val_ratio: float):
         """
         Splits the dataset into train validation and test.

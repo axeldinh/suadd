@@ -3,9 +3,9 @@ from torch import nn
 
 
 class CrossEntropyMSE(nn.Module):
-    def __init__(self, coeff_depth=1.0):
+    def __init__(self, coeff_depth=1.0, weight=None):
         super().__init__()
-        self.semantic_loss = nn.CrossEntropyLoss()
+        self.semantic_loss = nn.CrossEntropyLoss(weight=weight)
         self.depth_loss = nn.MSELoss()
         self.coeff_depth = coeff_depth
 
@@ -31,3 +31,6 @@ class CrossEntropyMSE(nn.Module):
             output["depth_loss"] = depth_loss
 
         return output
+
+    def set_weight(self, weight):
+        self.semantic_loss.weight = weight
