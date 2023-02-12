@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 
 import torch
 from skimage.io import imsave
@@ -125,6 +126,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Recover the complete command entered by the user
-    command = " ".join(["python"] + [f"--{k} {v}" for k, v in vars(args).items() if v is not None])
+    command = "python " + " ".join(sys.argv)
 
     main(**vars(args), command=command)
