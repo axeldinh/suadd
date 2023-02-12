@@ -279,11 +279,16 @@ class LitModel(pl.LightningModule):
         image = (image - image.min()) / (image.max() - image.min())
         image = (image * 255).to(torch.uint8)
 
-        # Save the prediction overlay locally
+        # Save the prediction overlay and mask locally
         overlay = make_overlay(image, semantic_pred)
-        imsave(os.path.join(save_path, f'{image_name}_overlay.png'), overlay.numpy().transpose(1, 2, 0))
+        imsave(os.path.join(save_path, f'{image_name}_overlay.png'), overlay.numpy().transpose(1, 2, 0),
+               check_contrast=False)
 
-        # Save the prediction overlay on wandb
+        overlay_mask = make_overlay(image, semantic_pred, alpha=1.0)
+        imsave(os.path.join(save_path, f'{image_name}_overlay_mask.png'), overlay_mask.numpy().transpose(1, 2, 0),
+               check_contrast=False)
+
+        # Save the prediction overlay and mask on wandb
         if self.config["use_wandb"]:
             wandb_image = wandb.Image(image.float(), masks={
                 "predictions": {
@@ -296,9 +301,12 @@ class LitModel(pl.LightningModule):
                 }
             })
             wandb.log({f"test/semantic_overlays/{image_name}": wandb_image})
+            wandb.log({f"test/semantic_masks/{image_name}": wandb.Image(overlay_mask.float())})
         else:
             # Save the overlay to tensorboard
             self.logger.experiment.add_image(f"test/semantic_overlays/{image_name}", overlay, self.current_epoch)
+            # Save the mask to tensorboard
+            self.logger.experiment.add_image(f"test/semantic_masks/{image_name}", overlay_mask, self.current_epoch)
 
         if depth_out is not None:
             mask = ~torch.isnan(depth_target)
