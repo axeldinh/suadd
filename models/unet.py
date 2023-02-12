@@ -31,11 +31,11 @@ class DoubleConv(nn.Module):
 
 class DecodingLayer(nn.Module):
 
-    def __init__(self, in_channels):
+    def __init__(self, in_channels, conv_size=3):
         super().__init__()
         self.transpose_conv = nn.ConvTranspose2d(in_channels=in_channels, out_channels=int(in_channels / 2),
                                                  kernel_size=2, stride=2)
-        self.double_conv = DoubleConv(in_channels=in_channels, out_channels=int(in_channels / 2))
+        self.double_conv = DoubleConv(in_channels=in_channels, out_channels=int(in_channels / 2), conv_size=conv_size)
 
     def forward(self, x, skip):
         x = torch.concatenate([self.transpose_conv(x), skip], dim=1)
@@ -71,12 +71,13 @@ class UNet(nn.Module):
         self.max_pool = nn.MaxPool2d(kernel_size=2)
 
         self.encoding_layers += nn.ModuleList([
-            DoubleConv(self.first_layer_channels * (2 ** i), self.first_layer_channels * (2 ** (i + 1)))
+            DoubleConv(self.first_layer_channels * (2 ** i), self.first_layer_channels * (2 ** (i + 1)),
+                       conv_size=conv_size)
             for i in range(depth)
         ])
 
         self.decoding_layers = nn.ModuleList([
-            DecodingLayer(self.first_layer_channels * (2 ** i))
+            DecodingLayer(self.first_layer_channels * (2 ** i), conv_size=conv_size)
             for i in range(depth, 0, -1)
         ])
 
