@@ -14,15 +14,19 @@ from utils.utils_image import make_overlay
 
 
 def main(exp_id, command):
-    config = load_config(exp_id, command=command)
+    config = load_config(exp_id, command=command, create_folder=False)
     transform = config["transform"](**config["transform_args"])
 
     print("Sanity check for dataset loading, using config for experiment ", exp_id)
 
-    dataset = ImageDataset(DATASET_PATH, transform=transform)
+    dataset = ImageDataset(DATASET_PATH, transform=transform, store_images=config["store_images"])
     print("Dataset loaded successfully")
 
-    train, val, test = dataset.split_dataset(0.8, 0.1)
+    print("Calling dataset.prepare_dataset()...")
+    dataset.prepare_dataset(config["train_ratio"], config["val_ratio"])
+    print("Dataset prepared successfully")
+
+    train, val, test = dataset.get_data_splits()
     print("Dataset split successfully")
 
     # Check that dataloaders work
@@ -34,14 +38,14 @@ def main(exp_id, command):
         print("Error in making train dataloader:", e)
 
     try:
-        val_loader = DataLoader(val, batch_size=2, num_workers=0, shuffle=False)
+        val_loader = DataLoader(val, batch_size=1, num_workers=0, shuffle=False)
         for batch in val_loader:
             break
     except Exception as e:
         print("Error in making val dataloader:", e)
 
     try:
-        test_loader = DataLoader(test, batch_size=2, num_workers=0, shuffle=False)
+        test_loader = DataLoader(test, batch_size=1, num_workers=0, shuffle=False)
         for batch in test_loader:
             break
     except Exception as e:

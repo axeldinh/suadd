@@ -1,12 +1,12 @@
 import os
-from typing import Any
 
 import numpy as np
 import torch
 import wandb
 from skimage.io import imread
-from torch.utils.data import Dataset, Subset
+from torch.utils.data import Dataset
 from torchvision.io import read_image
+from tqdm import trange, tqdm
 
 import configs.globals
 import configs.wandb as wandb_config
@@ -30,9 +30,13 @@ class ImageDataset(Dataset):
         self.val_idx = None
         self.test_idx = None
 
+        self.mean = None
+        self.std = None
+
         self.size = size
         self.store_images = store_images
 
+        self.dataset_path = folder
         self.images_folder = os.path.join(folder, 'inputs')
         self.semantic_annotations_folder = os.path.join(folder, 'semantic_annotations')
         self.depth_annotations_folder = os.path.join(folder, 'depth_annotations')
@@ -42,23 +46,6 @@ class ImageDataset(Dataset):
         if size is not None:
             self.images_paths = self.images_paths[:size]
         self.transform = transform
-
-        self.mean = None
-        self.std = None
-        if self.transform is not None:
-            self.compute_mean_std()
-            self.transform.set_mean_std(self.mean, self.std)
-
-        if store_images:
-            self.images = []
-            self.semantic_annotations = []
-            self.depth_annotations = []
-            for i in range(len(self.images_paths)):
-                img_name = self.images_paths[i]
-                depth_annotation, image, semantic_annotation = self.load_datapoint(img_name)
-                self.images.append(image)
-                self.semantic_annotations.append(semantic_annotation)
-                self.depth_annotations.append(depth_annotation)
 
     def __len__(self):
         return len(self.images_paths)
@@ -77,9 +64,9 @@ class ImageDataset(Dataset):
         img_name = self.images_paths[idx]
 
         if self.store_images:
-            depth_annotation = self.depth_annotations[idx]
             image = self.images[idx]
             semantic_annotation = self.semantic_annotations[idx]
+            depth_annotation = self.depth_annotations[idx]
         else:
             depth_annotation, image, semantic_annotation = self.load_datapoint(img_name)
 
@@ -126,20 +113,27 @@ class ImageDataset(Dataset):
 
         sum_pixels = 0.0
         num_elements = 0
-        for i in range(len(self.images_paths)):
-            img_name = self.images_paths[i]
-            image_path = os.path.join(self.images_folder, img_name)
-            image = read_image(image_path).float()
+
+        for i in tqdm(self.train_idx, leave=None):
+            if self.store_images:
+                image = self.images[i]
+            else:
+                img_name = self.images_paths[i]
+                image_path = os.path.join(self.images_folder, img_name)
+                image = read_image(image_path).float()
             sum_pixels += image.sum()
             num_elements += torch.numel(image)
 
         self.mean = sum_pixels / num_elements
 
         std = torch.tensor(0.0)
-        for i in range(len(self.images_paths)):
-            img_name = self.images_paths[i]
-            image_path = os.path.join(self.images_folder, img_name)
-            image = read_image(image_path).float()
+        for i in tqdm(self.train_idx, leave=None):
+            if self.store_images:
+                image = self.images[i]
+            else:
+                img_name = self.images_paths[i]
+                image_path = os.path.join(self.images_folder, img_name)
+                image = read_image(image_path).float()
             std += ((image - self.mean) ** 2).sum()
 
         self.std = torch.sqrt(std / (num_elements - 1))
@@ -216,6 +210,48 @@ class ImageDataset(Dataset):
         test_dataset = torch.utils.data.Subset(self, test_idx)
 
         return train_dataset, val_dataset, test_dataset
+
+    def prepare_dataset(self, train_ratio: float, val_ratio: float):
+        """
+        Prepares the dataset. If store_images is set to True, the images are loaded in memory.
+        Then the dataset is split into train, validation and test.
+        Finally, the mean and std of the training dataset are computed.
+        :param train_ratio: float between 0 and 1
+        :param val_ratio: float between 0 and 1
+        :return:
+        """
+
+        if self.store_images:
+            print("ImageDataset.store_images set to True, loading images in memory...")
+            self.images = []
+            self.semantic_annotations = []
+            self.depth_annotations = []
+            for i in trange(len(self.images_paths)):
+                img_name = self.images_paths[i]
+                depth_annotation, image, semantic_annotation = self.load_datapoint(img_name)
+                self.images.append(image)
+                self.semantic_annotations.append(semantic_annotation)
+                self.depth_annotations.append(depth_annotation)
+
+        print("Splitting dataset into train, validation and test...")
+        self.train_set, self.val_set, self.test_set = self.split_dataset(train_ratio, val_ratio)
+
+        self.mean = None
+        self.std = None
+        if self.transform is not None:
+            print("Computing mean and std of the training dataset...")
+            self.compute_mean_std()
+            self.transform.set_mean_std(self.mean, self.std)
+
+    def get_data_splits(self):
+        """
+        Returns the train, validation and test subsets.
+        :return: The train, validation and test subsets.
+        """
+        if self.train_set is None or self.val_set is None or self.test_set is None:
+            raise Exception("The dataset has not been prepared yet. Call prepare_dataset() first.")
+        return self.train_set, self.val_set, self.test_set
+
 
 
 def fetch_data_from_wandb():

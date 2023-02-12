@@ -241,7 +241,8 @@ class LitModel(pl.LightningModule):
             size=self.config["number_images"],
             store_images=self.config["store_images"]
         )
-        self.train_set, self.val_set, self.test_set = dataset.split_dataset(self.train_ratio, self.val_ratio)
+        dataset.prepare_dataset(self.train_ratio, self.val_ratio)
+        self.train_set, self.val_set, self.test_set = dataset.get_data_splits()
 
     def train_dataloader(self):
         return DataLoader(self.train_set, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True)
