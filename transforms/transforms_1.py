@@ -40,11 +40,21 @@ class TransformSet1:
         ])
 
     def set_mean_std(self, mean, std):
-        self.mean = mean
-        self.std = std
+        """
+        Set the mean and std for normalization.
+        :param mean: Mean of training set, based on [0, 255] images
+        :param std: Std of training set, based on [0, 255] images
+        :return:
+        """
+        self.mean = mean / 255.
+        self.std = std / 255.
 
     def normalize(self, image):
-
+        """
+        Normalize the image.
+        :param image:
+        :return:
+        """
         if self.mean is None or self.std is None:
             raise Exception("Mean and Std must be set before normalization.")
 
@@ -70,7 +80,7 @@ class TransformSet1:
         else:
             image = patchify(image, self.patch_size)
 
-        # Normalize
+        # Normalize (mean and std are based on uint8 images)
         image = self.normalize(image)
 
         return image, semantic, depth
