@@ -33,6 +33,8 @@ class ImageDataset(Dataset):
         self.mean = None
         self.std = None
 
+        self.classes_count = None
+
         self.size = size
         self.store_images = store_images
 
@@ -114,15 +116,26 @@ class ImageDataset(Dataset):
         sum_pixels = 0.0
         num_elements = 0
 
+        self.classes_count = {}
+
         for i in tqdm(self.train_idx, leave=None):
             if self.store_images:
                 image = self.images[i]
+                semantic = self.semantic_annotations[i]
             else:
                 img_name = self.images_paths[i]
                 image_path = os.path.join(self.images_folder, img_name)
                 image = read_image(image_path).float()
+                semantic_path = os.path.join(self.semantic_annotations_folder, img_name)
+                semantic = read_image(semantic_path).float()
+                semantic[semantic == 255] = len(configs.globals.CLASSES) - 1
             sum_pixels += image.sum()
             num_elements += torch.numel(image)
+            for class_ in configs.globals.CLASSES.keys():
+                if class_ not in self.classes_count:
+                    self.classes_count[class_] = 0
+                self.classes_count[class_] += (semantic == class_).float().sum().item()
+
 
         self.mean = sum_pixels / num_elements
 
@@ -236,8 +249,6 @@ class ImageDataset(Dataset):
         print("Splitting dataset into train, validation and test...")
         self.train_set, self.val_set, self.test_set = self.split_dataset(train_ratio, val_ratio)
 
-        self.mean = None
-        self.std = None
         if self.transform is not None:
             print("Computing mean and std of the training dataset...")
             self.compute_mean_std()
