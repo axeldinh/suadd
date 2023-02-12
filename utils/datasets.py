@@ -144,7 +144,7 @@ class ImageDataset(Dataset):
 
         self.std = torch.sqrt(std / (num_elements - 1))
 
-    def split_dataset(self, train_ratio: float, val_ratio: float) -> tuple[Subset[Any], Subset[Any], Subset[Any]]:
+    def split_dataset(self, train_ratio: float, val_ratio: float):
         """
         Splits the dataset into train validation and test.
         The classes are equally represented in each split.
