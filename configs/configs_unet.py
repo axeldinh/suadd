@@ -29,6 +29,7 @@ unet_no_depth = {
     # Model configuration
     ##############################
     "model_args": {
+        "conv_size": 5,
         "channels_in": 1,
         "first_layer_channels": 64,
         "depth": 5,

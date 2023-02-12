@@ -6,14 +6,17 @@ import torch.nn as nn
 
 class DoubleConv(nn.Module):
 
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, conv_size=3):
         super().__init__()
 
         self.in_channels = in_channels
         self.out_channels = out_channels
 
-        self.conv1 = nn.Conv2d(self.in_channels, self.out_channels, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv2d(self.out_channels, self.out_channels, kernel_size=3, padding=1)
+        self.conv_size = conv_size
+        self.padding = (conv_size - 1) // 2
+
+        self.conv1 = nn.Conv2d(self.in_channels, self.out_channels, kernel_size=conv_size, padding=self.padding)
+        self.conv2 = nn.Conv2d(self.out_channels, self.out_channels, kernel_size=conv_size, padding=self.padding)
 
         self.activation = nn.ReLU()
 
@@ -43,7 +46,7 @@ class DecodingLayer(nn.Module):
 
 class UNet(nn.Module):
 
-    def __init__(self, channels_in, first_layer_channels, depth, num_classes, return_depth=False):
+    def __init__(self, channels_in, first_layer_channels, depth, num_classes, conv_size=3, return_depth=False):
         super().__init__()
 
         assert isinstance(depth, int) and depth > 0, f"Depth={depth} must be a positive integer"
@@ -60,6 +63,7 @@ class UNet(nn.Module):
         self.depth = depth
         self.num_classes = num_classes
         self.out_channels = num_classes
+        self.conv_size = conv_size
         if return_depth:
             self.out_channels += 1
         self.return_depth = return_depth
