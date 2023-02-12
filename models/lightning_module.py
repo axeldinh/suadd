@@ -72,7 +72,8 @@ class LitModel(pl.LightningModule):
         losses = self.loss(semantic_out, depth_out, semantic, depth)
         self.log('train/loss', losses['loss'])
         self.log('train/semantic_loss', losses['semantic_loss'])
-        self.log('train/depth_loss', losses['depth_loss'])
+        if losses.get('depth_loss') is not None:
+            self.log('train/depth_loss', losses['depth_loss'])
         return losses
 
     def validation_step(self, batch, batch_idx):
@@ -190,7 +191,8 @@ class LitModel(pl.LightningModule):
                     metrics[f"semantic/ious/{CLASSES[int(i)]}"] = ious[i]
                 # Unknown class is not included in the iou
                 metrics["semantic/ious/mean"] = ious[:-1].mean()
-            metrics[metric_name] = metric(prediction, target.long())
+            else:
+                metrics[metric_name] = metric(prediction, target.long())
         return metrics
 
     def compute_depth_metrics(self, prediction, target, semantic):
@@ -270,7 +272,8 @@ class LitModel(pl.LightningModule):
         semantic_target = semantic_target.cpu()
         depth_target = depth_target.cpu()
         semantic_pred = semantic_pred.cpu()
-        depth_out = depth_out.cpu()
+        if depth_out is not None:
+            depth_out = depth_out.cpu()
 
         image = (image - image.min()) / (image.max() - image.min())
         image = (image * 255).to(torch.uint8)

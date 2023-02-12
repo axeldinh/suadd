@@ -13,16 +13,21 @@ class CrossEntropyMSE(nn.Module):
         if semantic.dim() == 4:
             semantic = semantic.squeeze(1)
         semantic_loss = self.semantic_loss(semantic_out, semantic.long())
-        depth_loss = 0
+        loss = semantic_loss
+        depth_loss = None
         # Remove the nans from the depth
-        if depth is not None:
+        if depth_out is not None:
             mask = ~torch.isnan(depth)
             depth = depth[mask]
             depth_out = depth_out[mask]
             depth_loss = self.depth_loss(depth_out, depth)
+            loss = semantic_loss + depth_loss * self.coeff_depth
         output = {
             "semantic_loss": semantic_loss,
-            "depth_loss": depth_loss,
-            "loss": semantic_loss + depth_loss * self.coeff_depth
+            "loss": loss
         }
+
+        if depth_loss is not None:
+            output["depth_loss"] = depth_loss
+
         return output
