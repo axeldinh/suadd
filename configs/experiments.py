@@ -9,8 +9,10 @@ all_configs = {}
 all_configs.update(configs_unet)
 
 
-def load_config(config_id, command, trial_id=None):
+def load_config(config_id, command, trial_id=None, create_folder=True):
     config = all_configs[config_id]
+    if not create_folder:
+        return config
     if trial_id is not None:
         config["trial"] = trial_id
     config = process_config(config)
@@ -22,7 +24,7 @@ def load_config(config_id, command, trial_id=None):
             f.write("\tgit checkout -b " + config["name"] + " " + revision_hash + "\n")
             f.write("WandB Id: " + config["wandb_id"] + "\n")
 
-    return all_configs[config_id]
+    return config
 
 
 def process_config(config):
