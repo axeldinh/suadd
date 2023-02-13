@@ -1,8 +1,10 @@
 import torch
 from torch import nn
 
+from losses.base_loss import BaseLoss
 
-class CrossEntropyMSE(nn.Module):
+
+class CrossEntropyMSE(BaseLoss):
     def __init__(self, coeff_depth=1.0, weight=None):
         super().__init__()
         self.semantic_loss = nn.CrossEntropyLoss(weight=weight)
