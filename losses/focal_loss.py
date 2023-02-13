@@ -21,7 +21,7 @@ class FocalLoss(BaseLoss):
         semantic_bin = torch.zeros((semantic.shape[0], num_classes, height, width), dtype=torch.float32)
         semantic_bin = semantic_bin.to(semantic.device)
         for c in semantic.unique():
-            semantic_bin[:, c, :, :] = (semantic == c).float()
+            semantic_bin[:, c.int(), :, :] = (semantic == c).float()
 
         focal_loss = self.focal_loss(semantic_out, semantic_bin, alpha=self.alpha, gamma=self.gamma, reduction="mean")
 
