@@ -27,7 +27,7 @@ class LitModel(pl.LightningModule):
         self.config = config
 
         self.model = config["model"](**config["model_args"])
-        self.loss = config["loss"]
+        self.loss = config["loss"](**config["loss_args"])
         self.optimizer = config["optimizer"]
         self.scheduler = config["scheduler"]
         self.lr = config["lr"]

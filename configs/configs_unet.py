@@ -3,7 +3,7 @@ import os
 import torch
 
 from configs.globals import CLASSES, OUTPUTS_PATH
-from losses.cross_entropy_mse import CrossEntropyMSE
+from losses import CrossEntropyMSE, FocalLoss
 from models.unet import UNet
 from transforms.transforms_1 import TransformSet1
 
@@ -51,7 +51,11 @@ unet_no_depth = {
     # Training configuration
     ##############################
 
-    "loss": CrossEntropyMSE(),
+    "loss_args": {
+        "alpha": 0.5,
+        "gamma": 2,
+    },
+    "loss": FocalLoss,
     "weighted_loss": True,
     "optimizer": torch.optim.Adam,
     "scheduler": None,

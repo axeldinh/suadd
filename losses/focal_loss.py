@@ -23,7 +23,7 @@ class FocalLoss(BaseLoss):
         for c in semantic.unique():
             semantic_bin[:, c, :, :] = (semantic == c).float()
 
-        focal_loss = self.focal_loss(semantic_out, semantic_bin, alpha=self.alpha, gamma=self.gamma)
+        focal_loss = self.focal_loss(semantic_out, semantic_bin, alpha=self.alpha, gamma=self.gamma, reduction="mean")
 
         output = {
             "semantic_loss": focal_loss,
