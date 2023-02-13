@@ -196,9 +196,9 @@ class LitModel(pl.LightningModule):
                 # Get a random image
                 idx = np.random.randint(0, len(self.train_set))
                 data = self.train_set[idx]
-                image = data['image']
-                semantic = data['semantic']
-                depth = data['depth']
+                image = data['image'].to(self.device)
+                semantic = data['semantic'].to(self.device)
+                depth = data['depth'].to(self.device)
                 image_name = data['image_name']
 
                 # Get the predictions
