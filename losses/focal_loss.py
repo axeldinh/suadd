@@ -31,3 +31,6 @@ class FocalLoss(BaseLoss):
         }
 
         return output
+
+    def set_weight(self, weight):
+        pass
