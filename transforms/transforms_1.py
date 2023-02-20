@@ -21,7 +21,14 @@ class TransformSet1:
         - Normalize
     """
 
-    def __init__(self, p=0.5, patch_size=256):
+    def __init__(self, p=0.5, patch_size=256, crop_position="center"):
+
+        if crop_position == "center":
+            crop = T.CenterCrop(size=(patch_size, patch_size))
+        elif crop_position == "random":
+            crop = T.RandomCrop(size=(patch_size, patch_size))
+        else:
+            raise ValueError("crop_position must be 'center' or 'random'.")
 
         self.mean = None
         self.std = None
@@ -34,7 +41,7 @@ class TransformSet1:
         ])
 
         self.shape_transforms = T.Compose([
-            T.RandomCrop(size=(patch_size, patch_size)),
+            crop,
             T.RandomHorizontalFlip(p=p),
             T.RandomVerticalFlip(p=p),
         ])

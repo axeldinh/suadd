@@ -2,14 +2,14 @@ import torch
 
 from configs.globals import CLASSES
 from losses import CrossEntropyMSE
-from models.fcn import FCN
+from models.deeplabv3 import DeepLabV3
 from transforms.transforms_1 import TransformSet1
 
-fcn_50_no_depth_center = {
+deeplabv3_50_no_depth_center = {
     ##############################
     # Experiment configuration
     ##############################
-    "idx": 100,
+    "idx": 200,
 
     ##############################
     # Data configuration
@@ -29,7 +29,7 @@ fcn_50_no_depth_center = {
         "num_classes": len(CLASSES),
         "return_depth": False
     },
-    "model": FCN,
+    "model": DeepLabV3,
 
     ##############################
     # Transform configuration
@@ -65,5 +65,5 @@ fcn_50_no_depth_center = {
 }
 
 configs = {
-    100: fcn_50_no_depth_center,
+    200: deeplabv3_50_no_depth_center
 }

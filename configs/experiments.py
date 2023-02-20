@@ -3,13 +3,30 @@ import subprocess
 
 import wandb.util
 
-from configs.configs_unet import configs as configs_unet
+from configs.configs_deeplabv3 import configs as configs_deeplabv3
 from configs.configs_fcn import configs as configs_fcn
+from configs.configs_unet import configs as configs_unet
 from configs.globals import OUTPUTS_PATH
+
+
+def check_unicity(config1, config2):
+    """
+    Check that no config idx is contained in both config1 and config2
+    :param config1:
+    :param config2:
+    :return:
+    """
+    for key in config1.keys():
+        if key in config2.keys():
+            raise ValueError("Config idx " + str(key) + " is contained in both configs")
+
 
 all_configs = {}
 all_configs.update(configs_unet)
+check_unicity(all_configs, configs_fcn)
 all_configs.update(configs_fcn)
+check_unicity(all_configs, configs_deeplabv3)
+all_configs.update(configs_deeplabv3)
 
 
 def load_config(config_id, command, trial_id=None, create_folder=True):

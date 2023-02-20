@@ -1,17 +1,15 @@
-import os
-
 import torch
 
-from configs.globals import CLASSES, OUTPUTS_PATH
-from losses import CrossEntropyMSE, FocalLoss
+from configs.globals import CLASSES
+from losses import CrossEntropyMSE
 from models.unet import UNet
 from transforms.transforms_1 import TransformSet1
 
-unet_no_depth = {
+unet_no_depth_center = {
     ##############################
     # Experiment configuration
     ##############################
-    "idx": 1,
+    "idx": 0,
 
     ##############################
     # Data configuration
@@ -42,6 +40,7 @@ unet_no_depth = {
 
     "transform_args": {
         "patch_size": 512,
+        "crop_position": "center",
     },
     "transform": TransformSet1,
 
@@ -49,11 +48,8 @@ unet_no_depth = {
     # Training configuration
     ##############################
 
-    "loss_args": {
-        "alpha": 0.5,
-        "gamma": 2,
-    },
-    "loss": FocalLoss,
+    "loss_args": {},
+    "loss": CrossEntropyMSE,
     "weighted_loss": True,
     "optimizer": torch.optim.Adam,
     "scheduler": None,
@@ -72,5 +68,5 @@ unet_no_depth = {
 }
 
 configs = {
-    1: unet_no_depth,
+    0: unet_no_depth_center,
 }

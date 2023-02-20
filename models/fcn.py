@@ -5,19 +5,19 @@ from torchvision.models.segmentation import fcn_resnet50, fcn_resnet101, FCN_Res
 
 class FCN(nn.Module):
 
-    def __init__(self, num_classes, return_depth=False, resnet='50'):
+    def __init__(self, num_classes, return_depth=False, backbone='50'):
 
         super().__init__()
 
         self.num_classes = num_classes
         self.return_depth = return_depth
 
-        if resnet == '50':
+        if backbone == 'resnet50':
             self.fcn = fcn_resnet50(weights=FCN_ResNet50_Weights.DEFAULT, progress=True)
-        elif resnet == '101':
+        elif backbone == 'resnet101':
             self.fcn = fcn_resnet101(weights=FCN_ResNet101_Weights.DEFAULT, progress=True)
         else:
-            raise ValueError('resnet must be 50 or 101')
+            raise ValueError('backbone must be resnet50 or resnet101')
 
         # Only keep enough parameters for 1D inputs
         param = self.fcn.backbone.conv1.weight
@@ -43,11 +43,11 @@ class FCN(nn.Module):
 
 if __name__ == "__main__":
     import torch
-    model = FCN(num_classes=17, return_depth=True, resnet='50')
+    model = FCN(num_classes=17, return_depth=True, backbone='50')
     x = torch.rand(1, 1, 256, 256)
     semantic, depth = model(x)
     print(semantic.shape, depth.shape)
-    model = FCN(num_classes=17, return_depth=True, resnet='101')
+    model = FCN(num_classes=17, return_depth=True, backbone='101')
     x = torch.rand(1, 1, 256, 256)
     semantic, depth = model(x)
     print(semantic.shape, depth.shape)
