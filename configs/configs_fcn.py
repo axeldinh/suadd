@@ -48,10 +48,7 @@ fcn_50_no_depth = {
     # Training configuration
     ##############################
 
-    "loss_args": {
-        "alpha": 0.5,
-        "gamma": 2,
-    },
+    "loss_args": {},
     "loss": CrossEntropyMSE,
     "weighted_loss": True,
     "optimizer": torch.optim.Adam,
