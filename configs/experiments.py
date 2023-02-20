@@ -4,9 +4,11 @@ import subprocess
 import wandb.util
 
 from configs.configs_unet import configs as configs_unet
+from configs.configs_fcn import configs as configs_fcn
 
 all_configs = {}
 all_configs.update(configs_unet)
+all_configs.update(configs_fcn)
 
 
 def load_config(config_id, command, trial_id=None, create_folder=True):
