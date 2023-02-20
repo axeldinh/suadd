@@ -16,6 +16,8 @@ class FCN(nn.Module):
             self.fcn = fcn_resnet50(weights=FCN_ResNet50_Weights.DEFAULT, progress=True)
         elif resnet == '101':
             self.fcn = fcn_resnet101(weights=FCN_ResNet101_Weights.DEFAULT, progress=True)
+        else:
+            raise ValueError('resnet must be 50 or 101')
 
         # Only keep enough parameters for 1D inputs
         param = self.fcn.backbone.conv1.weight

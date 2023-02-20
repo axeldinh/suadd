@@ -29,7 +29,7 @@ fcn_50_no_depth = {
     # Model configuration
     ##############################
     "model_args": {
-        "resnet": 50,
+        "resnet": "50",
         "num_classes": len(CLASSES),
         "return_depth": False
     },
