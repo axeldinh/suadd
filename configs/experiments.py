@@ -5,6 +5,7 @@ import wandb.util
 
 from configs.configs_unet import configs as configs_unet
 from configs.configs_fcn import configs as configs_fcn
+from configs.globals import OUTPUTS_PATH
 
 all_configs = {}
 all_configs.update(configs_unet)
@@ -35,6 +36,9 @@ def process_config(config):
     :param config: dict
     :return: dict
     """
+
+    config["name"] = "Experiment_" + str(config["idx"])
+    config["save_path"] = os.path.join(OUTPUTS_PATH, config["name"])
 
     config["resumed"] = True
     # If no trial number is specified, create a new one

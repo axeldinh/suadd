@@ -12,8 +12,6 @@ unet_no_depth = {
     # Experiment configuration
     ##############################
     "idx": 1,
-    "name": "Experiment_1",
-    "save_path": os.path.join(OUTPUTS_PATH, "Experiment_1"),
 
     ##############################
     # Data configuration
