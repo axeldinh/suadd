@@ -286,7 +286,7 @@ class LitModel(pl.LightningModule):
         return DataLoader(self.test_set, batch_size=1, num_workers=self.num_workers, shuffle=False)
 
     def save_predictions_images(self, image, semantic_target, depth_target,
-                                semantic_pred, depth_out, image_name, save_path):
+                                semantic_pred, depth_out, image_name, save_path, mode='test'):
         """
         Save the predictions locally and on wandb
         :param image: image of shape (1, height, width), torch tensor
@@ -296,6 +296,7 @@ class LitModel(pl.LightningModule):
         :param depth_out: depth prediction of shape (height, width), torch tensor
         :param image_name: name of the image
         :param save_path: path to save the images
+        :param mode: train, val or test
         :return: None
         """
 
@@ -331,13 +332,13 @@ class LitModel(pl.LightningModule):
                     "class_labels": CLASSES
                 }
             })
-            wandb.log({f"test/semantic_overlays/{image_name}": wandb_image})
-            wandb.log({f"test/semantic_masks/{image_name}": wandb.Image(overlay_mask.float())})
+            wandb.log({f"{mode}/semantic_overlays/{image_name}": wandb_image})
+            wandb.log({f"{mode}/semantic_masks/{image_name}": wandb.Image(overlay_mask.float())})
         else:
             # Save the overlay to tensorboard
-            self.logger.experiment.add_image(f"test/semantic_overlays/{image_name}", overlay, self.current_epoch)
+            self.logger.experiment.add_image(f"{mode}/semantic_overlays/{image_name}", overlay, self.current_epoch)
             # Save the mask to tensorboard
-            self.logger.experiment.add_image(f"test/semantic_masks/{image_name}", overlay_mask, self.current_epoch)
+            self.logger.experiment.add_image(f"{mode}/semantic_masks/{image_name}", overlay_mask, self.current_epoch)
 
         if depth_out is not None:
             mask = ~torch.isnan(depth_target)
@@ -349,18 +350,18 @@ class LitModel(pl.LightningModule):
             imsave(os.path.join(save_path, f'{image_name}_depth_error.png'), depth_error.numpy(), check_contrast=False)
             # Save the depth error on wandb
             if self.config["use_wandb"]:
-                wandb.log({f"test/depth_error_images/{image_name}": wandb.Image(depth_error.float())})
+                wandb.log({f"{mode}/depth_error_images/{image_name}": wandb.Image(depth_error.float())})
             else:
                 # Save the depth error to tensorboard
-                self.logger.experiment.add_image(f"test/depth_error_images/{image_name}", depth_error.unsqueeze(0),
+                self.logger.experiment.add_image(f"{mode}/depth_error_images/{image_name}", depth_error.unsqueeze(0),
                                                  self.current_epoch)
             depth_uint8 = torch.clamp(depth_out, 0, 255).to(torch.uint8)
             # Save the depth prediction locally
             imsave(os.path.join(save_path, f'{image_name}_depth.png'), depth_uint8.numpy(), check_contrast=False)
             # Save the depth prediction on wandb
             if self.config["use_wandb"]:
-                wandb.log({f"test/depth_images/{image_name}": wandb.Image(depth_uint8.float())})
+                wandb.log({f"{mode}/depth_images/{image_name}": wandb.Image(depth_uint8.float())})
             else:
                 # Save the depth prediction to tensorboard
-                self.logger.experiment.add_image(f"test/depth_images/{image_name}", depth_uint8.unsqueeze(0),
+                self.logger.experiment.add_image(f"{mode}/depth_images/{image_name}", depth_uint8.unsqueeze(0),
                                                  self.current_epoch)
