@@ -25,7 +25,7 @@ fcn_50_no_depth_center = {
     # Model configuration
     ##############################
     "model_args": {
-        "backbone": "resnet50",
+        "backbone": "resnet101",
         "num_classes": len(CLASSES),
         "return_depth": False
     },
