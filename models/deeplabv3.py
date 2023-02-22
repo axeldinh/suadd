@@ -23,7 +23,7 @@ class DeepLabV3(nn.Module):
                                                         progress=True)
         else:
             raise ValueError("backbone must be resnet50, resnet101 or mobilenet_v3_large")
-        print(self.deeplab)
+
         output_channels = num_classes
         if return_depth:
             output_channels += 1
